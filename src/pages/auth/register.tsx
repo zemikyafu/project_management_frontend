@@ -1,24 +1,47 @@
 import React, { useState } from "react"
+import { register } from "../../api/AuthService"
+import { useNavigate } from "react-router-dom"
 export function Register() {
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const [formState, setFormState] = useState({ name: "", email: "", password: "" })
   const [confirmPassword, setConfirmPassword] = useState("")
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const [error, setError] = useState("")
+  const [message, setMessage] = useState("")
+  const navigate = useNavigate()
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (password !== confirmPassword) {
-      alert("Passwords do not match")
+    if (formState.password !== confirmPassword) {
+      setError("Passwords do not match")
       return
     }
-    // Handle registration logic here
-    console.log({ name, email, password })
+    const passwordRegex = /^(?=.*[A-Z])(?=.*[^A-Za-z0-9]).{8,}$/
+    if (!passwordRegex.test(formState.password)) {
+      setError(
+        "Password must be at least 8 characters long, contain at least one uppercase letter and one special character"
+      )
+      return
+    }
+    try {
+      setError("")
+      setMessage("")
+      const response = await register(formState.name, formState.email, formState.password)
+      setMessage("Registration successful. Please login to continue.")
+      navigate("/")
+    } catch (err) {
+      console.log(err)
+      setError("Registration failed. Please try again.")
+    }
+  }
+  const handleOnchange = (e: React.FormEvent) => {
+    const { name, value } = e.target as HTMLInputElement
+    setFormState({ ...formState, [name]: value })
   }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md p-8 space-y-8 bg-white rounded shadow-md">
-        <h2>Register</h2>
+        <h2 className="text-2xl font-bold text-center">Register</h2>
+        {error && <p className="text-red-500">{error}</p>}
+        {message && <p className="text-green-500">{message}</p>}
         <form onSubmit={handleSubmit}>
           <div>
             <label htmlFor="name">Name:</label>
@@ -26,8 +49,8 @@ export function Register() {
               className="w-full px-3 py-2 border rounded-md"
               type="text"
               id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              name="name"
+              onChange={handleOnchange}
               required
             />
           </div>
@@ -37,8 +60,8 @@ export function Register() {
               className="w-full px-3 py-2 border rounded-md"
               type="email"
               id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              name="email"
+              onChange={handleOnchange}
               required
             />
           </div>
@@ -48,8 +71,8 @@ export function Register() {
               className="w-full px-3 py-2 border rounded-md"
               type="password"
               id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              name="password"
+              onChange={handleOnchange}
               required
             />
           </div>
