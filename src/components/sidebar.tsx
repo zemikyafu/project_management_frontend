@@ -2,32 +2,34 @@ import React from "react"
 import { Link, useLocation } from "react-router-dom"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { LayoutDashboard, Users, ShieldCheck, ChevronDown, ChevronRight } from "lucide-react"
+import {
+  LayoutDashboard,
+  Users,
+  ShieldCheck,
+  ChevronDown,
+  ChevronRight,
+  ClipboardList
+} from "lucide-react"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 
 const menuItems = [
   {
-    name: "Dashboard",
-    href: "/dashboard",
-    icon: LayoutDashboard
-  },
-  {
     name: "User Management",
-    href: "/users",
+    href: "/userManagement",
     icon: Users,
-    subItems: [
-      { name: "All Users", href: "/users" },
-      { name: "Add User", href: "/users/add" }
-    ]
+    subItems: [{ name: "All Users", href: "/userManagement" }]
   },
   {
     name: "Role Management",
-    href: "/roles",
+    href: "/roleManagememt",
     icon: ShieldCheck,
-    subItems: [
-      { name: "All Roles", href: "/roles" },
-      { name: "Add Role", href: "/roles/add" }
-    ]
+    subItems: [{ name: "All Roles", href: "/roleManagememt" }]
+  },
+  {
+    name: "Task Management",
+    href: "/userManagement",
+    icon: ClipboardList,
+    subItems: [{ name: "Project Task", href: "/taskManagement" }]
   }
 ]
 
@@ -35,14 +37,14 @@ export function Sidebar() {
   const location = useLocation()
 
   return (
-    <div className="flex flex-col h-screen bg-blue-600 text-white border-r w-64">
+    <div className="flex flex-col h-screen bg-blue-600 text-white border-r w-64 ">
       <div className="space-y-4 py-4">
         <div className="px-3 py-2">
-          <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">Menu</h2>
+          <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">Admin Dashboard</h2>
           <div className="space-y-1">
             {menuItems.map((item) => (
               <div key={item.name}>
-                {item.subItems ? (
+                {item?.subItems ? (
                   <Collapsible>
                     <CollapsibleTrigger asChild>
                       <Button

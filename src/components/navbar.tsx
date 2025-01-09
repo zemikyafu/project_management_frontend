@@ -11,7 +11,6 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 
-// Utility functions
 const getInitials = (name: string) => {
   return name.trim().charAt(0).toUpperCase() || "U"
 }
