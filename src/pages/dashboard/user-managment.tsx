@@ -1,6 +1,6 @@
 import { useState } from "react"
-import { UserTable } from "../../components/user-table"
-import { InviteUserForm } from "../../components/invitationform"
+import { UserTable } from "../../components/user/user-table"
+import { InviteUserForm } from "../../components/user/invitation-form"
 import { Button } from "@/components/ui/button"
 import { Navbar } from "../../components/navbar"
 import { Sidebar } from "../../components/sidebar"
