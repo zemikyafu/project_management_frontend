@@ -22,8 +22,6 @@ const getColorFromInitial = (initial: string) => {
   const index = initial.charCodeAt(0) % colors.length
   return colors[index]
 }
-
-// Get user details at load time
 const user = {
   name: name,
   init: getInitials(name),
@@ -51,11 +49,6 @@ export function Navbar() {
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                {/* <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Avatar className={`h-8 w-8 ${user.avatarColor}`}>
-                    <AvatarFallback>{user.init}</AvatarFallback>
-                  </Avatar>
-                </Button> */}
                 <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0">
                   <Avatar className="h-8 w-8">
                     <AvatarFallback

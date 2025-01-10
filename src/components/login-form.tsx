@@ -2,6 +2,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useLogin } from "@/features/auth-management"
 import {
   Card,
   CardContent,
@@ -13,30 +14,36 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
 import { useNavigate } from "react-router-dom"
-import { login } from "../api/AuthService"
 
 export default function LoginForm() {
   const navigate = useNavigate()
   const [formState, setFormState] = useState({ email: "", password: "" })
   const [errors, setErrors] = useState({ email: "", password: "" })
   const [errorMessage, setErrorMessage] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const handleSubmit = async (e: React.FormEvent) => {
+  const mutation = useLogin()
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    try {
-      const response = await login(formState.email, formState.password)
-      localStorage.setItem("token", response.token)
-      localStorage.setItem("name", response.name)
-      localStorage.setItem("userId", response.userId)
-      navigate("/home")
-    } catch (err) {
-      setErrorMessage((err as Error).message)
-    }
+
+    // Validate form before submitting
+    if (!validateForm()) return
+
+    mutation.mutate(formState, {
+      onSuccess: (response) => {
+        localStorage.setItem("token", response.token)
+        localStorage.setItem("name", response.name)
+        localStorage.setItem("userId", response.userId)
+        navigate("/home")
+      },
+      onError: (err: Error) => {
+        setErrorMessage(err.message)
+      }
+    })
   }
 
-  const handleChange = (e: React.FormEvent) => {
-    const { name, value } = e.target as HTMLInputElement
-    setFormState({ ...formState, [name]: value })
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setFormState((prevState) => ({ ...prevState, [name]: value }))
   }
 
   const validateForm = (): boolean => {
@@ -46,19 +53,26 @@ export default function LoginForm() {
     } else if (!/\S+@\S+\.\S+/.test(formState.email)) {
       newErrors.email = "Email is invalid"
     }
+
     if (!formState.password) {
       newErrors.password = "Password is required"
     } else if (formState.password.length < 8) {
       newErrors.password = "Password must be at least 8 characters"
     }
+
     setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    return !newErrors.email && !newErrors.password
   }
 
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+        {errorMessage && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{errorMessage}</AlertDescription>
+          </Alert>
+        )}
         <CardTitle>Login</CardTitle>
         <CardDescription>Enter your credentials to access your account</CardDescription>
       </CardHeader>
@@ -104,8 +118,8 @@ export default function LoginForm() {
           </div>
         </CardContent>
         <CardFooter>
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Logging in..." : "Login"}
+          <Button type="submit" className="w-full" disabled={mutation.isPending}>
+            {mutation.isPending ? "Logging in..." : "Login"}
           </Button>
         </CardFooter>
       </form>
