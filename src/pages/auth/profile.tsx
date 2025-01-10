@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react"
+import React, { useState } from "react"
+import { usefetchProfile, useUpdateProfile } from "@/features/auth-management"
 import {
   Card,
   CardContent,
@@ -14,8 +15,8 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Navbar } from "../../components/navbar"
 import { Sidebar } from "../../components/sidebar"
-import { getUserProfile, updateProfile } from "../../api/AuthService"
 import { UUID } from "crypto"
+
 interface User {
   name: string
   email: string
@@ -23,61 +24,40 @@ interface User {
 }
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<User>({
-    name: "",
-    email: "",
-    avatar: ""
-  })
   const [isEditing, setIsEditing] = useState(false)
-  const [formData, setFormData] = useState(user)
-  const [userId, setUserId] = useState<UUID>()
+  const userId = localStorage.getItem("userId") as UUID
+
+  // Fetch the user profile using usefetchProfile hook
+  const { profile, error, isPending } = usefetchProfile(userId)
+  console.log(profile)
+  console.log(error)
+  console.log(isPending)
+  // Manage form data separately for editing
+  const [formData, setFormData] = useState<User>({
+    name: profile?.name || "",
+    email: profile?.email || "",
+    avatar: profile?.avatar || ""
+  })
+
+  // Mutation for updating the profile
+  const { newProfile, errors: updateError } = useUpdateProfile(userId, formData)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
+
   const handleSave = async () => {
     try {
-      if (userId === undefined || formData.name === "" || formData.email === "") {
-        throw new Error("Name and Email cannot be empty")
+      const response = newProfile.data
+      if (!updateError) {
+        setIsEditing(false)
       }
-      if (userId) {
-        const token = localStorage.getItem("token")
-        if (!token) {
-          throw new Error("Token not found in localStorage")
-        }
-        await updateProfile(userId, formData.name, formData.email, token)
-      } else {
-        console.error("User ID is undefined")
-      }
-      setUser(formData)
-      setIsEditing(false)
     } catch (error) {
       console.error("Failed to update user data", error)
     }
   }
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const userId = localStorage.getItem("userId")
-        setUserId(userId as UUID)
-        if (!userId) {
-          throw new Error("User ID not found in localStorage")
-        }
-        const userData = await getUserProfile(
-          userId as UUID,
-          localStorage.getItem("token") as string
-        )
-        setUser(userData)
-        setFormData(userData)
-      } catch (error) {
-        console.error("Failed to fetch user data", error)
-      }
-    }
-
-    fetchUserData()
-  }, [])
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -87,8 +67,8 @@ export default function ProfilePage() {
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
               <Avatar className="h-24 w-24">
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                <AvatarImage src={profile?.avatar} alt={profile?.name} />
+                <AvatarFallback>{profile?.name?.charAt(0)}</AvatarFallback>
               </Avatar>
             </div>
             <CardTitle className="text-3xl font-bold">Profile</CardTitle>
@@ -96,7 +76,11 @@ export default function ProfilePage() {
           </CardHeader>
           <Separator className="my-4" />
           <CardContent>
-            {isEditing ? (
+            {isPending ? (
+              <p>Loading...</p>
+            ) : error ? (
+              <p className="text-red-500">Failed to load profile: {error.message}</p>
+            ) : isEditing ? (
               <form className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Name</Label>
@@ -117,11 +101,11 @@ export default function ProfilePage() {
               <div className="space-y-4">
                 <div>
                   <Label className="text-sm text-muted-foreground">Name</Label>
-                  <p className="text-lg font-medium">{user.name}</p>
+                  <p className="text-lg font-medium">{profile?.name}</p>
                 </div>
                 <div>
                   <Label className="text-sm text-muted-foreground">Email</Label>
-                  <p className="text-lg font-medium">{user.email}</p>
+                  <p className="text-lg font-medium">{profile?.email}</p>
                 </div>
               </div>
             )}

@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Button } from "../components/ui/button"
-import { Navbar } from "../components/navBar"
+import { Navbar } from "../components/navbar"
 
 export function Home() {
   return (
