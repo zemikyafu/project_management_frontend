@@ -16,19 +16,24 @@ export const Column: React.FC<ColumnProps> = ({ column, users, onAssign, onDelet
     <div className="bg-gray-100 p-4 rounded-lg shadow-md w-64">
       <h2 className="font-bold mb-4">{column.title}</h2>
       <Droppable droppableId={column.id}>
-        {(provided) => (
-          <div ref={provided.innerRef} {...provided.droppableProps} className="min-h-[100px]">
-            {column.tasks.map((task, index) => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                index={index}
-                users={users}
-                onAssign={onAssign}
-                onDelete={onDelete}
-                onUpdate={onUpdate}
-              />
-            ))}
+        {(provided, snapshot) => (
+          <div
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+            className={`min-h-[100px] ${snapshot.isDraggingOver ? "bg-blue-100" : ""}`}
+          >
+            {column.tasks &&
+              column.tasks.map((task, index) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  index={index}
+                  users={users}
+                  onAssign={onAssign}
+                  onDelete={onDelete}
+                  onUpdate={onUpdate}
+                />
+              ))}
             {provided.placeholder}
           </div>
         )}

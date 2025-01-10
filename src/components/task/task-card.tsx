@@ -33,12 +33,12 @@ export const TaskCard: React.FC<TaskProps> = ({
 
   return (
     <Draggable draggableId={task.id} index={index}>
-      {(provided) => (
+      {(provided, snapshot) => (
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className="bg-white p-4 mb-2 rounded shadow"
+          className={`bg-white p-4 mb-2 rounded shadow ${snapshot.isDragging ? "opacity-50" : ""}`}
         >
           {isEditing ? (
             <div>
