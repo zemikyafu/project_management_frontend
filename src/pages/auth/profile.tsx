@@ -27,19 +27,14 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false)
   const userId = localStorage.getItem("userId") as UUID
 
-  // Fetch the user profile using usefetchProfile hook
   const { profile, error, isPending } = usefetchProfile(userId)
-  console.log(profile)
-  console.log(error)
-  console.log(isPending)
-  // Manage form data separately for editing
+
   const [formData, setFormData] = useState<User>({
     name: profile?.name || "",
     email: profile?.email || "",
     avatar: profile?.avatar || ""
   })
 
-  // Mutation for updating the profile
   const { newProfile, errors: updateError } = useUpdateProfile(userId, formData)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

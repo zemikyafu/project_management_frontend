@@ -37,7 +37,7 @@ export function Sidebar() {
   const location = useLocation()
 
   return (
-    <div className="flex flex-col h-screen bg-blue-600 text-white border-r w-64 ">
+    <div className="flex flex-col min-h-screen lg:h-full bg-blue-600 text-white border-r w-64">
       <div className="space-y-4 py-4">
         <div className="px-3 py-2">
           <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">Admin Dashboard</h2>
