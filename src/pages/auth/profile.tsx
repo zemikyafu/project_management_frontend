@@ -55,9 +55,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar />
       <div className="flex flex-1">
-        <Sidebar />
         <Card className="max-w-2xl mx-auto">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">

@@ -37,9 +37,7 @@ export function UserManagement() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar />
       <div className="flex flex-1">
-        <Sidebar />
         <main className="flex-1 p-6 overflow-auto">
           <div className="container mx-auto p-4 space-y-4">
             <h1 className="text-2xl font-bold">User Management</h1>

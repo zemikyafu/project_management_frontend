@@ -21,7 +21,7 @@ const menuItems = [
   },
   {
     name: "Role Management",
-    href: "/roleManagememt",
+    href: "/roleManagement",
     icon: ShieldCheck,
     subItems: [{ name: "All Roles", href: "/roleManagememt" }]
   },
