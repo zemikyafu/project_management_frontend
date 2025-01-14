@@ -47,6 +47,11 @@ export const getCompanyById = async (id: string) => {
   return response.data.data;
 };
 
+export const fetchUserCompany = async () => {
+  const response = await api.get("/companies/");
+  return response.data.data;
+}
+
 export const updateCompany = async (id:UUID,name:string,email:string,address:string) => {
   const response = await api.patch(`/companies/${id}`, { name,email,address });
   return response.data.data;
