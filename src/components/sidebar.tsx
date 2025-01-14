@@ -8,7 +8,8 @@ import {
   ShieldCheck,
   ChevronDown,
   ChevronRight,
-  ClipboardList
+  ClipboardList,
+  Briefcase
 } from "lucide-react"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 
@@ -27,9 +28,15 @@ const menuItems = [
   },
   {
     name: "Task Management",
-    href: "/userManagement",
+    href: "/taskManagement",
     icon: ClipboardList,
     subItems: [{ name: "Project Task", href: "/taskManagement" }]
+  },
+  {
+    name: "Workspaces",
+    href: "/workspaces",
+    icon: Briefcase,
+    subItems: [{ name: "Workspaces", href: "/workspaces" }]
   }
 ]
 
@@ -95,4 +102,29 @@ export function Sidebar() {
       </div>
     </div>
   )
+}
+
+{
+  /* <aside className="w-64 bg-gray-100 p-4">
+<nav className="space-y-2">
+  <Link href="/">
+    <Button variant="ghost" className="w-full justify-start">
+      <Home className="mr-2 h-4 w-4" />
+      Dashboard
+    </Button>
+  </Link>
+  <Link href="/workspaces">
+    <Button variant="ghost" className="w-full justify-start">
+      <Briefcase className="mr-2 h-4 w-4" />
+      Workspaces
+    </Button>
+  </Link>
+  <Link href="/settings">
+    <Button variant="ghost" className="w-full justify-start">
+      <Settings className="mr-2 h-4 w-4" />
+      Settings
+    </Button>
+  </Link>
+</nav>
+</aside> */
 }
