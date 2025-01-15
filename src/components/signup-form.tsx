@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
-import { useSignup } from "@/features/auth-management"
+import { useSignup } from "@/features/auth-hook"
 import { useNavigate } from "react-router-dom"
 import { signupSchema, SignupFormValues } from "../schemas/auth"
 

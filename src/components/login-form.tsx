@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useLogin } from "@/features/auth-management"
+import { useLogin } from "@/features/auth-hook"
 import {
   Card,
   CardContent,
