@@ -1,5 +1,5 @@
 import React from "react"
-import Workspace from "@/components/workspace/workspace"
+import WorkspaceForm from "@/components/workspace/workspace"
 
 // const Workspaces: React.FC = () => {
 //   return (
@@ -16,7 +16,7 @@ const Workspaces: React.FC = () => {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-4">Workspaces</h1>
-      <Workspace />
+      <WorkspaceForm />
     </div>
   )
 }

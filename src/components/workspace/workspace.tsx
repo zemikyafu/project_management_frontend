@@ -4,6 +4,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useSelectedCompany } from "@/features/company-hook"
+import {
+  useFetchWorkspaces,
+  useCreateWorkspace,
+  useUpdateWorkspace
+} from "@/features/workspace-hook"
+import { Workspace } from "@/types"
 import {
   Dialog,
   DialogContent,
@@ -18,43 +25,72 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import { MoreVertical, Plus } from "lucide-react"
+import { UUID } from "crypto"
 
-interface Workspace {
-  id: string
-  name: string
-  description: string
-}
-
-const Workspace: React.FC = () => {
-  const [workspaces, setWorkspaces] = useState<Workspace[]>([])
-  const [newWorkspace, setNewWorkspace] = useState({ name: "", description: "" })
+const WorkspaceForm: React.FC = () => {
+  const [newWorkspace, setNewWorkspace] = useState<Workspace>({
+    id: "",
+    name: "",
+    description: "",
+    companyId: ""
+  })
   const [editingWorkspace, setEditingWorkspace] = useState<Workspace | null>(null)
+
   const navigate = useNavigate()
 
+  const { getSelectedCompany } = useSelectedCompany()
+  const companyId = getSelectedCompany() as UUID
+
+  const { workspaces, error, isLoading } = useFetchWorkspaces(companyId)
+  const createWorkspaceMutation = useCreateWorkspace(companyId)
+  const updateWorkspaceMutation = useUpdateWorkspace(companyId)
+
   const handleCreate = () => {
-    const workspace = {
-      id: Date.now().toString(),
-      ...newWorkspace
-    }
-    setWorkspaces([...workspaces, workspace])
-    setNewWorkspace({ name: "", description: "" })
+    createWorkspaceMutation.mutate(
+      { ...newWorkspace, companyId: companyId },
+      {
+        onSuccess: () => {
+          setNewWorkspace({ id: "", name: "", description: "", companyId: "" })
+        }
+      }
+    )
   }
 
   const handleUpdate = () => {
     if (editingWorkspace) {
-      setWorkspaces(workspaces.map((w) => (w.id === editingWorkspace.id ? editingWorkspace : w)))
-      setEditingWorkspace(null)
+      // Update workspace logic here
+      updateWorkspaceMutation.mutate(editingWorkspace, {
+        onSuccess: () => setEditingWorkspace(null)
+      })
     }
   }
 
   const handleDelete = (id: string) => {
-    setWorkspaces(workspaces.filter((w) => w.id !== id))
+    // Delete workspace logic here
+  }
+
+  if (isLoading) {
+    return (
+      <div className="text-center py-10">
+        <p className="text-xl mb-4">Loading workspaces...</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-10">
+        <p className="text-xl mb-4 text-red-500">Failed to load workspaces. Please try again.</p>
+      </div>
+    )
   }
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold">Workspaces</h2>
+        <h2 className="text-xl font-semibold">
+          Workspaces {workspaces && workspaces.length > 0 ? workspaces[0].companyId : "N/A"}
+        </h2>
         <Dialog>
           <DialogTrigger asChild>
             <Button className="bg-blue-500 hover:bg-blue-600 text-white">
@@ -76,22 +112,26 @@ const Workspace: React.FC = () => {
                 value={newWorkspace.description}
                 onChange={(e) => setNewWorkspace({ ...newWorkspace, description: e.target.value })}
               />
-              <Button onClick={handleCreate} className="bg-blue-500 hover:bg-blue-600 text-white">
-                Create
+              <Button
+                onClick={handleCreate}
+                className="bg-blue-500 hover:bg-blue-600 text-white"
+                disabled={createWorkspaceMutation.isPending}
+              >
+                {createWorkspaceMutation.isPending ? "Creating..." : "Create"}
               </Button>
             </div>
           </DialogContent>
         </Dialog>
       </div>
 
-      {workspaces.length === 0 ? (
+      {workspaces && workspaces.length === 0 ? (
         <div className="text-center py-10">
           <p className="text-xl mb-4">No workspaces available</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {workspaces.map((workspace) => (
-            <Card key={workspace.id}>
+          {(workspaces ?? []).map((workspace: Workspace) => (
+            <Card key={String(workspace.id)}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">{workspace.name}</CardTitle>
                 <DropdownMenu>
@@ -133,12 +173,7 @@ const Workspace: React.FC = () => {
               value={editingWorkspace?.name || ""}
               onChange={(e) =>
                 setEditingWorkspace(
-                  editingWorkspace
-                    ? {
-                        ...editingWorkspace,
-                        name: e.target.value
-                      }
-                    : null
+                  editingWorkspace ? { ...editingWorkspace, name: e.target.value } : null
                 )
               }
             />
@@ -147,12 +182,7 @@ const Workspace: React.FC = () => {
               value={editingWorkspace?.description || ""}
               onChange={(e) =>
                 setEditingWorkspace(
-                  editingWorkspace
-                    ? {
-                        ...editingWorkspace,
-                        description: e.target.value
-                      }
-                    : null
+                  editingWorkspace ? { ...editingWorkspace, description: e.target.value } : null
                 )
               }
             />
@@ -166,4 +196,4 @@ const Workspace: React.FC = () => {
   )
 }
 
-export default Workspace
+export default WorkspaceForm
