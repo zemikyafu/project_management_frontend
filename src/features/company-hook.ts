@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchUserCompany,getCompanyById, createCompany,updateCompany } from '../api/companyService';
+import { fetchUserCompany,getCompanyById, createCompany,updateCompany } from '../api/company-service';
 import { UUID } from "crypto";
 
 interface Company {
@@ -8,8 +8,13 @@ interface Company {
     email: string;
     address: string;
 }
-const QUERY_KEY="companies";
 
+const SELECTED_COMPANY_KEY = "selectedCompany";
+export function selectedCompanyKey() {
+  return [SELECTED_COMPANY_KEY];
+}
+
+const QUERY_KEY="companies";
 export function companyKey(id?: string) {
   if (id) {
     return [QUERY_KEY, id];
@@ -17,6 +22,22 @@ export function companyKey(id?: string) {
 
   return [QUERY_KEY];
 }
+
+export function useSelectedCompany() {
+    const queryClient = useQueryClient();
+
+    const setSelectedCompany = (companyId: string) => {
+    queryClient.setQueryData(selectedCompanyKey(),companyId);
+
+    }
+
+    const getSelectedCompany = () => {
+        return queryClient.getQueryData<String>(selectedCompanyKey());
+    }
+
+    return { setSelectedCompany, getSelectedCompany };
+}
+
 
 
 export function  useFetchCompanies  ()  {

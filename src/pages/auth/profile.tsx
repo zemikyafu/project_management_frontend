@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { usefetchProfile, useUpdateProfile } from "@/features/auth-management"
+import { usefetchProfile, useUpdateProfile } from "@/features/auth-hook"
 import {
   Card,
   CardContent,

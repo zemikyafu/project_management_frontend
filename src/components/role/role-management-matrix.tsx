@@ -8,7 +8,7 @@ import {
   useFetchRoles,
   useFetchRolePermissions,
   useFetchPermissions
-} from "../../features/role-management"
+} from "../../features/role-hook"
 
 export function RoleManagementMatrix() {
   const [roles, setRoles] = useState<Role[]>([])
