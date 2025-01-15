@@ -7,7 +7,7 @@ interface Permission {
 }
 import RolePermissionService from "../api/role-permission-service";
 import Company from "@/pages/company";
-import { getCompanyById } from "@/api/companyService";
+import { getCompanyById } from "@/api/company-service";
 import { UUID } from "crypto";
 
 const QUERY_KEY_ROLE = "roles"
