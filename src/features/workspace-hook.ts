@@ -17,15 +17,15 @@ export function useFetchWorkspaces(companyId:UUID){
     const{data,error,isLoading}= useQuery<Workspace[]>({
         queryKey:workspaceKey(companyId),
         queryFn: () => WorkspaceService.fetchCompanyWorkspaces( companyId),
+        enabled:!!companyId,
         staleTime:Infinity,
     });
-
     return {workspaces:data,error,isLoading};
 }
 
 export function useFetchWorkspace(workspaceId:UUID,companyId:UUID){
-    const{data,error,isLoading}= useQuery<Workspace>(
-        {queryKey:workspaceKey(workspaceId),
+    const{data,error,isLoading}= useQuery<Workspace>({
+        queryKey:workspaceKey(workspaceId),
         queryFn: () => WorkspaceService.fetchWorkspaceById(workspaceId,companyId),
         enabled:!!workspaceId,
         staleTime:Infinity,

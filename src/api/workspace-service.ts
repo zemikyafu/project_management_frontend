@@ -1,6 +1,6 @@
 import axios from "axios";
 import { UUID } from "crypto";
-import { WorkspaceCreateFormValues,WorkspaceUpdateFormValue} from "../schemas/workspace";
+import{WorkspaceCreateFormValues,WorkspaceUpdateFormValue} from "../schemas/workspace";
 const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:10000/api/v1';
 
 const api = axios.create({
@@ -47,11 +47,11 @@ const api = axios.create({
         const response = await api.get(`/companies/${companyId}/workspaces/${workspaceId}`);
         return response.data.data;
     },
-    async createWorkspace(workspaceData: any,companyId: UUID) {
+    async createWorkspace(workspaceData: WorkspaceCreateFormValues,companyId: UUID) {
         const response = await api.post(`/companies/${companyId}/workspaces/`,workspaceData);
         return response.data.data;
     },
-    async updateWorkspace(workspaceData: any,companyId: UUID) {
+    async updateWorkspace(workspaceData: WorkspaceUpdateFormValue,companyId: UUID) {
         const response = await api.put(`/companies/${companyId}/workspaces/${workspaceData.id}`,workspaceData);
         return response.data.data;
     }

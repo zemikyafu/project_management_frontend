@@ -1,16 +1,16 @@
 import React, { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useSelectedCompany } from "@/features/company-hook"
+import { useFetchCompanies } from "@/features/company-hook"
 import {
   useFetchWorkspaces,
   useCreateWorkspace,
   useUpdateWorkspace
 } from "@/features/workspace-hook"
-import { Workspace } from "@/types"
+import { Company, Workspace } from "@/types"
 import {
   Dialog,
   DialogContent,
@@ -28,29 +28,33 @@ import { MoreVertical, Plus } from "lucide-react"
 import { UUID } from "crypto"
 
 const WorkspaceForm: React.FC = () => {
-  const [newWorkspace, setNewWorkspace] = useState<Workspace>({
-    id: "",
+  const [newWorkspace, setNewWorkspace] = useState<Omit<Workspace, "id">>({
     name: "",
     description: "",
     companyId: ""
   })
   const [editingWorkspace, setEditingWorkspace] = useState<Workspace | null>(null)
+  const [selectedCompany, setSelectedCompany] = useState<string | null>(null)
 
   const navigate = useNavigate()
+  const { companyId } = useParams<{ companyId: UUID }>()
 
-  const { getSelectedCompany } = useSelectedCompany()
-  const companyId = getSelectedCompany() as UUID
+  const { data: companies, isLoading: companiesLoading } = useFetchCompanies()
+  const { workspaces, error, isLoading } = useFetchWorkspaces(companyId as UUID)
+  const createWorkspaceMutation = useCreateWorkspace(companyId as UUID)
+  const updateWorkspaceMutation = useUpdateWorkspace(companyId as UUID)
 
-  const { workspaces, error, isLoading } = useFetchWorkspaces(companyId)
-  const createWorkspaceMutation = useCreateWorkspace(companyId)
-  const updateWorkspaceMutation = useUpdateWorkspace(companyId)
+  const handleCompanySelect = (id: string) => {
+    setSelectedCompany(id)
+    navigate(`/workspaces/${id}`)
+  }
 
   const handleCreate = () => {
     createWorkspaceMutation.mutate(
-      { ...newWorkspace, companyId: companyId },
+      { ...newWorkspace, companyId: companyId || "" },
       {
         onSuccess: () => {
-          setNewWorkspace({ id: "", name: "", description: "", companyId: "" })
+          setNewWorkspace({ name: "", description: "", companyId: "" })
         }
       }
     )
@@ -58,7 +62,6 @@ const WorkspaceForm: React.FC = () => {
 
   const handleUpdate = () => {
     if (editingWorkspace) {
-      // Update workspace logic here
       updateWorkspaceMutation.mutate(editingWorkspace, {
         onSuccess: () => setEditingWorkspace(null)
       })
@@ -66,7 +69,32 @@ const WorkspaceForm: React.FC = () => {
   }
 
   const handleDelete = (id: string) => {
-    // Delete workspace logic here
+    // Add delete logic here
+  }
+
+  if (!companyId) {
+    return (
+      <div className="flex flex-col items-center py-10">
+        {companiesLoading ? (
+          <p className="text-xl">Loading companies...</p>
+        ) : (
+          <>
+            <p className="text-xl mb-4">Select a company to view its workspaces</p>
+            <select
+              onChange={(e) => handleCompanySelect(e.target.value)}
+              className="p-3 border rounded w-80 bg-white shadow-md"
+            >
+              <option value="">Select a company</option>
+              {companies?.map((company: Company) => (
+                <option key={company.id} value={company.id}>
+                  {company.name}
+                </option>
+              ))}
+            </select>
+          </>
+        )}
+      </div>
+    )
   }
 
   if (isLoading) {
@@ -86,10 +114,10 @@ const WorkspaceForm: React.FC = () => {
   }
 
   return (
-    <div>
+    <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold">
-          Workspaces {workspaces && workspaces.length > 0 ? workspaces[0].companyId : "N/A"}
+          Workspaces in {workspaces && workspaces.length > 0 ? workspaces[0].company.name : "N/A"}
         </h2>
         <Dialog>
           <DialogTrigger asChild>
@@ -130,7 +158,7 @@ const WorkspaceForm: React.FC = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {(workspaces ?? []).map((workspace: Workspace) => (
+          {workspaces?.map((workspace: Workspace) => (
             <Card key={String(workspace.id)}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">{workspace.name}</CardTitle>
@@ -142,7 +170,7 @@ const WorkspaceForm: React.FC = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => navigate(`/workspaces/${workspace.id}`)}>
+                    <DropdownMenuItem onClick={() => navigate(`/projectes/${workspace.id}`)}>
                       View Projects
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setEditingWorkspace(workspace)}>
@@ -155,7 +183,7 @@ const WorkspaceForm: React.FC = () => {
                 </DropdownMenu>
               </CardHeader>
               <CardContent>
-                <p className="text-xs text-muted-foreground">{workspace.description}</p>
+                <p className="text-sm text-muted-foreground">{workspace.description}</p>
               </CardContent>
             </Card>
           ))}
