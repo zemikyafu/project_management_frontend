@@ -37,8 +37,8 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
         <Route path="/home" element={<PrivateRoute element={<Home />} />} />
         {/* Layout Protected Routes */}
         <Route element={<LayoutRoute />}>
-          <Route path="/workspaces" element={<Workspaces />} />
-          <Route path="/workspaces/:id" element={<WorkspaceProjects />} />
+          <Route path="/workspaces/:companyId?" element={<Workspaces />} />
+          <Route path="/projectes/:workspaceId" element={<WorkspaceProjects />} />
           <Route path="/userManagement" element={<PrivateRoute element={<UserManagement />} />} />
           <Route path="/roleManagement" element={<PrivateRoute element={<RoleManagement />} />} />
           <Route path="/taskManagement" element={<PrivateRoute element={<TaskManagement />} />} />

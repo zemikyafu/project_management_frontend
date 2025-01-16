@@ -10,9 +10,7 @@ export function Home() {
   const navigate = useNavigate()
 
   const handleComanyselect = (companyId: string) => {
-    setSelectedCompany(companyId)
-    // navigate(`/workspaces/${companyId}`)
-    navigate(`/workspaces`)
+    navigate(`/workspaces/${companyId}`)
   }
 
   return (
