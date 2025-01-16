@@ -6,24 +6,35 @@ import { ArrowLeft } from "lucide-react"
 
 const WorkspaceProjects: React.FC = () => {
   const [workspaceName, setWorkspaceName] = useState("")
-  const { id } = useParams<{ id: string }>()
+  const [companyId, setCompanyId] = useState("")
+  const { id: workspaceId } = useParams<{ id: string }>()
   const navigate = useNavigate()
 
-  useEffect(() => {
-    // In a real application, you would fetch the workspace name based on the ID
-    // For this example, we'll use a mock name
-    setWorkspaceName("Sample Workspace")
-  }, [id])
+  const handleSelectedWorkspace = ({
+    companyId,
+    workspaceName
+  }: {
+    companyId: string
+    workspaceName: string
+  }) => {
+    setWorkspaceName(workspaceName)
+    setCompanyId(companyId)
+  }
 
   return (
     <div>
       <div className="flex items-center mb-6">
-        <Button variant="ghost" onClick={() => navigate("/workspaces")} className="mr-4">
+        <Button
+          variant="ghost"
+          onClick={() => navigate(`/workspaces/${companyId}`)}
+          className="mr-4"
+        >
           <ArrowLeft className="mr-2 h-4 w-4" /> Back
         </Button>
         <h1 className="text-2xl font-bold">Projects in {workspaceName}</h1>
       </div>
-      <ProjectList workspaceId={id || ""} />
+      {/* <ProjectList workspaceId={workspaceId!} onSelectedWorkspace={handleSelectedWorkspace} /> */}
+      <ProjectList />
     </div>
   )
 }

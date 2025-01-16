@@ -3,13 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import {
   Select,
   SelectContent,
@@ -24,133 +18,242 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import { MoreVertical, Plus } from "lucide-react"
-
-interface Project {
-  id: string
-  name: string
-  description: string
-  status: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED"
-  startDate: string
-  endDate: string
-}
+import { useParams, useNavigate } from "react-router-dom"
+import {
+  useFetchProjects,
+  useCreateProject,
+  useUpdateProject
+  // useDeleteProject
+} from "@/features/project-hook"
+import { Project, ProjectStatus } from "@/types"
+import { UUID } from "crypto"
 
 const statusColors = {
   NOT_STARTED: "bg-yellow-100",
   IN_PROGRESS: "bg-blue-100",
-  COMPLETED: "bg-green-100"
+  COMPLETED: "bg-green-100",
+  ON_HOLD: "bg-red-100"
 }
-
 interface ProjectListProps {
   workspaceId: string
+  onSelectedWorkspace: (data: { companyId: string; workspaceName: string }) => void
 }
 
-export const ProjectList: React.FC<ProjectListProps> = ({ workspaceId }) => {
-  const [projects, setProjects] = useState<Project[]>([])
-  const [newProject, setNewProject] = useState<Omit<Project, "id">>({
+// export const ProjectList: React.FC<ProjectListProps> = ({ workspaceId, onSelectedWorkspace }) => {
+
+export const ProjectList: React.FC = () => {
+  const { workspaceId } = useParams<{ workspaceId: string }>()
+  const navigate = useNavigate()
+  const {
+    projects,
+    isLoading: isProjectsLoading,
+    error: fetchError
+  } = useFetchProjects(workspaceId as UUID)
+  const createProjectMutation = useCreateProject(workspaceId as UUID)
+  const updateProjectMutation = useUpdateProject(workspaceId as UUID)
+  // const deleteProjectMutation = useDeleteProject(workspaceId!)
+
+  // React.useEffect(() => {
+  //   if (projects?.workspace) {
+  //     onSelectedWorkspace({
+  //       companyId: projects.workspace.companyId,
+  //       workspaceName: projects.workspace.name
+  //     })
+  //   }
+  // }, [projects, onSelectedWorkspace])
+
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [dialogError, setDialogError] = useState<string | null>(null)
+
+  const [createProjectForm, setCreateProjectForm] = useState<Omit<Project, "id">>({
     name: "",
     description: "",
-    status: "NOT_STARTED",
+    status: ProjectStatus.NOT_STARTED,
+    workspaceId: workspaceId!,
     startDate: "",
     endDate: ""
   })
+
   const [editingProject, setEditingProject] = useState<Project | null>(null)
 
-  const handleCreateProject = () => {
-    const project: Project = {
-      id: Date.now().toString(),
-      ...newProject
-    }
-    setProjects([...projects, project])
-    setNewProject({
-      name: "",
-      description: "",
-      status: "NOT_STARTED",
-      startDate: "",
-      endDate: ""
+  const handleCreate = () => {
+    createProjectMutation.mutate(createProjectForm, {
+      onSuccess: () => {
+        setDialogOpen(false)
+        setDialogError(null)
+        setCreateProjectForm({
+          name: "",
+          description: "",
+          status: ProjectStatus.NOT_STARTED,
+          workspaceId: workspaceId!,
+          startDate: "",
+          endDate: ""
+        })
+      },
+      onError: (error) => {
+        setDialogError(error.message || "Error creating project.")
+      }
     })
   }
 
-  const handleDeleteProject = (id: string) => {
-    setProjects(projects.filter((p) => p.id !== id))
+  const handleUpdate = () => {
+    if (!editingProject) return
+
+    updateProjectMutation.mutate(editingProject, {
+      onSuccess: () => {
+        setDialogOpen(false)
+        setEditingProject(null)
+        setDialogError(null)
+      },
+      onError: (error) => {
+        setDialogError(error.message || "Error updating project.")
+      }
+    })
   }
 
-  const handleUpdateProject = () => {
-    if (editingProject) {
-      setProjects(projects.map((p) => (p.id === editingProject.id ? editingProject : p)))
-      setEditingProject(null)
-    }
+  // const handleDelete = (projectId: string) => {
+  //   deleteProjectMutation.mutate(projectId, {
+  //     onSuccess: () => {
+  //       setDialogError(null);
+  //     },
+  //     onError: (error) => {
+  //       setDialogError(error.message || "Error deleting project.");
+  //     },
+  //   });
+  // };
+
+  const openCreateDialog = () => {
+    setCreateProjectForm({
+      name: "",
+      description: "",
+      status: ProjectStatus.NOT_STARTED,
+      workspaceId: workspaceId!,
+      startDate: "",
+      endDate: ""
+    })
+    setEditingProject(null)
+    setDialogError(null)
+    setDialogOpen(true)
+  }
+
+  const openEditDialog = (project: Project) => {
+    setEditingProject(project)
+    setDialogError(null)
+    setDialogOpen(true)
+  }
+
+  if (isProjectsLoading) {
+    return <div>Loading projects...</div>
+  }
+
+  if (fetchError) {
+    return <div>Error fetching projects: {fetchError.message}</div>
   }
 
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold">Projects</h2>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="bg-blue-500 hover:bg-blue-600 text-white">
-              <Plus className="mr-2 h-4 w-4" /> Create Project
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New Project</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <Input
-                placeholder="Project Name"
-                value={newProject.name}
-                onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
-              />
-              <Textarea
-                placeholder="Description"
-                value={newProject.description}
-                onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
-              />
-              <Select
-                value={newProject.status}
-                onValueChange={(value: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED") =>
-                  setNewProject({ ...newProject, status: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="NOT_STARTED">Not Started</SelectItem>
-                  <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                  <SelectItem value="COMPLETED">Completed</SelectItem>
-                </SelectContent>
-              </Select>
-              <Input
-                type="date"
-                placeholder="Start Date"
-                value={newProject.startDate}
-                onChange={(e) => setNewProject({ ...newProject, startDate: e.target.value })}
-              />
-              <Input
-                type="date"
-                placeholder="End Date"
-                value={newProject.endDate}
-                onChange={(e) => setNewProject({ ...newProject, endDate: e.target.value })}
-              />
-              <Button
-                onClick={handleCreateProject}
-                className="bg-blue-500 hover:bg-blue-600 text-white"
-              >
-                Create Project
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <Button onClick={openCreateDialog} className="bg-blue-500 hover:bg-blue-600 text-white">
+          <Plus className="mr-2 h-4 w-4" /> Create Project
+        </Button>
       </div>
 
-      {projects.length === 0 ? (
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingProject ? "Edit Project" : "Create New Project"}</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            {dialogError && <p className="text-red-500">{dialogError}</p>}
+            <Input
+              placeholder="Project Name"
+              value={editingProject ? editingProject.name : createProjectForm.name}
+              onChange={(e) => {
+                if (editingProject) {
+                  setEditingProject({ ...editingProject, name: e.target.value })
+                } else {
+                  setCreateProjectForm({ ...createProjectForm, name: e.target.value })
+                }
+              }}
+            />
+            <Textarea
+              placeholder="Description"
+              value={editingProject ? editingProject.description : createProjectForm.description}
+              onChange={(e) => {
+                if (editingProject) {
+                  setEditingProject({ ...editingProject, description: e.target.value })
+                } else {
+                  setCreateProjectForm({ ...createProjectForm, description: e.target.value })
+                }
+              }}
+            />
+            <Select
+              value={editingProject ? editingProject.status : createProjectForm.status}
+              onValueChange={(value) => {
+                if (editingProject) {
+                  setEditingProject({ ...editingProject, status: value as ProjectStatus })
+                } else {
+                  setCreateProjectForm({ ...createProjectForm, status: value as ProjectStatus })
+                }
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="NOT_STARTED">Not Started</SelectItem>
+                <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                <SelectItem value="COMPLETED">Completed</SelectItem>
+                <SelectItem value="ON_HOLD">On Hold</SelectItem>
+              </SelectContent>
+            </Select>
+            <Input
+              type="date"
+              placeholder="Start Date"
+              value={editingProject ? editingProject.startDate : createProjectForm.startDate}
+              onChange={(e) => {
+                if (editingProject) {
+                  setEditingProject({ ...editingProject, startDate: e.target.value })
+                } else {
+                  setCreateProjectForm({ ...createProjectForm, startDate: e.target.value })
+                }
+              }}
+            />
+            <Input
+              type="date"
+              placeholder="End Date"
+              value={editingProject ? editingProject.endDate : createProjectForm.endDate}
+              onChange={(e) => {
+                if (editingProject) {
+                  setEditingProject({ ...editingProject, endDate: e.target.value })
+                } else {
+                  setCreateProjectForm({ ...createProjectForm, endDate: e.target.value })
+                }
+              }}
+            />
+            <Button
+              onClick={editingProject ? handleUpdate : handleCreate}
+              disabled={createProjectMutation.isPending || updateProjectMutation.isPending}
+              className="bg-blue-500 hover:bg-blue-600 text-white"
+            >
+              {createProjectMutation.isPending || updateProjectMutation.isPending
+                ? "Saving..."
+                : editingProject
+                ? "Update Project"
+                : "Create Project"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {projects && projects.length === 0 ? (
         <div className="text-center py-10">
           <p className="text-xl mb-4">No projects available in this workspace</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.map((project) => (
+          {projects?.map((project) => (
             <Card key={project.id} className="overflow-hidden">
               <CardHeader
                 className={`flex flex-row items-center justify-between space-y-0 pb-2 ${
@@ -166,12 +269,18 @@ export const ProjectList: React.FC<ProjectListProps> = ({ workspaceId }) => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onSelect={() => setEditingProject(project)}>
+                    <DropdownMenuItem onClick={() => navigate(`/taskes/${project.id}`)}>
+                      View Projects
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => openEditDialog(project)}>
                       Edit
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleDeleteProject(project.id)}>
+                    {/* <DropdownMenuItem
+                      onClick={() => handleDelete(project.id)}
+                      className="text-red-500"
+                    >
                       Delete
-                    </DropdownMenuItem>
+                    </DropdownMenuItem> */}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </CardHeader>
@@ -188,75 +297,6 @@ export const ProjectList: React.FC<ProjectListProps> = ({ workspaceId }) => {
           ))}
         </div>
       )}
-
-      <Dialog open={!!editingProject} onOpenChange={() => setEditingProject(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Project</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <Input
-              placeholder="Project Name"
-              value={editingProject?.name || ""}
-              onChange={(e) =>
-                setEditingProject(
-                  editingProject ? { ...editingProject, name: e.target.value } : null
-                )
-              }
-            />
-            <Textarea
-              placeholder="Description"
-              value={editingProject?.description || ""}
-              onChange={(e) =>
-                setEditingProject(
-                  editingProject ? { ...editingProject, description: e.target.value } : null
-                )
-              }
-            />
-            <Select
-              value={editingProject?.status || ""}
-              onValueChange={(value: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED") =>
-                setEditingProject(editingProject ? { ...editingProject, status: value } : null)
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="NOT_STARTED">Not Started</SelectItem>
-                <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-                <SelectItem value="COMPLETED">Completed</SelectItem>
-              </SelectContent>
-            </Select>
-            <Input
-              type="date"
-              placeholder="Start Date"
-              value={editingProject?.startDate || ""}
-              onChange={(e) =>
-                setEditingProject(
-                  editingProject ? { ...editingProject, startDate: e.target.value } : null
-                )
-              }
-            />
-            <Input
-              type="date"
-              placeholder="End Date"
-              value={editingProject?.endDate || ""}
-              onChange={(e) =>
-                setEditingProject(
-                  editingProject ? { ...editingProject, endDate: e.target.value } : null
-                )
-              }
-            />
-            <Button
-              onClick={handleUpdateProject}
-              className="bg-blue-500 hover:bg-blue-600 text-white"
-            >
-              Update Project
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
