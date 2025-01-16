@@ -1,11 +1,11 @@
 import React, { useState } from "react"
 import { Draggable } from "react-beautiful-dnd"
-import { Task as TaskType, User } from "../../types/kanban"
+import { Task as TaskType, Assignee } from "../../types/index"
 
 interface TaskProps {
   task: TaskType
   index: number
-  users: User[]
+  users: Assignee[]
   onAssign: (taskId: string, userId: string) => void
   onDelete: (taskId: string) => void
   onUpdate: (taskId: string, newContent: string) => void
@@ -66,7 +66,7 @@ export const TaskCard: React.FC<TaskProps> = ({
               <p className="mb-2">{task.content}</p>
               <div className="flex justify-between items-center">
                 <select
-                  value={task.assignedTo || ""}
+                  value={task.assignee.id || ""}
                   onChange={handleAssign}
                   className="p-1 border rounded"
                 >

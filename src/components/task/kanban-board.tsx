@@ -1,64 +1,60 @@
 import React, { useState, useEffect } from "react"
 import { DragDropContext, DropResult } from "react-beautiful-dnd"
 import { Column } from "./board-column"
-import { KanbanData, Task, User, Project } from "../../types/kanban"
-import { useQuery } from "@tanstack/react-query"
-
-const fetchProjects = async (): Promise<Project[]> => {
-  // Simulating an API call
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([
-        {
-          id: "project-1",
-          name: "Website Redesign",
-          tasks: [
-            { id: "task-1", content: "Design homepage", projectId: "project-1", status: "To Do" },
-            {
-              id: "task-2",
-              content: "Implement responsive layout",
-              projectId: "project-1",
-              status: "In Progress"
-            }
-          ]
-        },
-        {
-          id: "project-2",
-          name: "Mobile App Development",
-          tasks: [
-            { id: "task-3", content: "Create wireframes", projectId: "project-2", status: "To Do" },
-            {
-              id: "task-4",
-              content: "Develop user authentication",
-              projectId: "project-2",
-              status: "In Progress"
-            }
-          ]
-        }
-      ])
-    }, 1000)
-  })
-}
+import { KanbanData, Task, Assignee, Project } from "../../types/index"
+import {
+  useFetchTasks,
+  usefechAssignFromWorkspace,
+  useCreateTask,
+  useUpdateTask
+} from "../../features/task-hook"
+import { useParams } from "react-router-dom"
+import { UUID } from "crypto"
 
 const initialData: KanbanData = {
   columns: {
-    "To Do": { id: "To Do", title: "To Do" },
-    "In Progress": { id: "In Progress", title: "In Progress" },
-    Done: { id: "Done", title: "Done" }
+    BACKLOG: { id: "BACKLOG", title: "To Do", tasks: [] },
+    IN_PROGRESS: { id: "IN_PROGRESS", title: "In Progress", tasks: [] },
+    IN_REVIEW: { id: "IN_REVIEW", title: "In Review", tasks: [] },
+    COMPLETED: { id: "COMPLETED", title: "Completed", tasks: [] }
   },
-  columnOrder: ["To Do", "In Progress", "Done"],
-  users: [
-    { id: "user-1", name: "Alice" },
-    { id: "user-2", name: "Bob" },
-    { id: "user-3", name: "Charlie" }
-  ],
+  columnOrder: ["BACKLOG", "IN_PROGRESS", "IN_REVIEW", "COMPLETED"],
+  users: [],
   projects: [],
   currentProjectId: null
 }
 
 export const KanbanBoard: React.FC = () => {
+  const { projectId } = useParams<{ projectId: string }>()
   const [data, setData] = useState<KanbanData>(initialData)
-  const [newTask, setNewTask] = useState<string>("")
+  const [showTaskDialog, setShowTaskDialog] = useState(false)
+  const [editingTask, setEditingTask] = useState<Partial<Task> | null>(null)
+  const [newTask, setNewTask] = useState<Partial<Task>>({
+    title: "",
+    content: "",
+    priority: "MEDIUM",
+    status: "BACKLOG",
+    projectId: projectId || "",
+    assigneeId: "",
+    deadlineAt: ""
+  })
+
+  const {
+    tasks = [],
+    error: tasksError,
+    isLoading: tasksLoading
+  } = useFetchTasks(projectId as UUID)
+  const {
+    assignees = [],
+    error: assigneesError,
+    isLoading: assigneesLoading
+  } = usefechAssignFromWorkspace(projectId as UUID)
+  const createTaskMutation = useCreateTask(projectId as UUID)
+  const updateTaskMutation = useUpdateTask(projectId as UUID)
+
+  const fetchProjects = async (): Promise<Project[]> => {
+    return [{ id: projectId, name: "Backend Project" }]
+  }
 
   useEffect(() => {
     const loadProjects = async () => {
@@ -72,93 +68,108 @@ export const KanbanBoard: React.FC = () => {
     loadProjects()
   }, [])
 
-  const onDragEnd = (result: DropResult) => {
-    const { destination, source, draggableId } = result
+  useEffect(() => {
+    if (tasks.length) {
+      setData((prevData) => ({
+        ...prevData,
+        columns: prevData.columnOrder.reduce((columns, columnId) => {
+          columns[columnId] = {
+            ...prevData.columns[columnId],
+            tasks: tasks.filter((task) => task.status === columnId)
+          }
+          return columns
+        }, {})
+      }))
+    }
+  }, [tasks])
 
-    if (!destination) {
-      return
+  const handleTaskSubmit = () => {
+    if (!newTask.title || !newTask.content || !data.currentProjectId) return
+
+    if (editingTask) {
+      updateTaskMutation.mutate({
+        ...editingTask,
+        ...newTask
+      })
+    } else {
+      createTaskMutation.mutate({
+        ...newTask,
+        id: `task-${Date.now()}`,
+        projectId: data.currentProjectId
+      })
     }
 
-    if (destination.droppableId === source.droppableId && destination.index === source.index) {
-      return
-    }
-
-    const newData = { ...data }
-    const currentProject = newData.projects.find((p) => p.id === newData.currentProjectId)
-    if (!currentProject) return
-
-    const taskToMove = currentProject.tasks.find((t) => t.id === draggableId)
-    if (!taskToMove) return
-
-    // Remove the task from its original position
-    currentProject.tasks = currentProject.tasks.filter((t) => t.id !== draggableId)
-
-    // Update the task's status
-    taskToMove.status = destination.droppableId
-
-    // Insert the task at its new position
-    currentProject.tasks.push(taskToMove)
-
-    setData(newData)
+    closeTaskDialog()
   }
 
-  const addNewTask = () => {
-    if (newTask.trim() === "" || !data.currentProjectId) return
-
-    const newTaskObj: Task = {
-      id: `task-${Date.now()}`,
-      content: newTask,
-      projectId: data.currentProjectId,
-      status: "To Do"
-    }
-
-    const newData = { ...data }
-    const currentProject = newData.projects.find((p) => p.id === data.currentProjectId)
-    if (currentProject) {
-      currentProject.tasks.push(newTaskObj)
-      setData(newData)
-      setNewTask("")
-    }
-  }
-
-  const assignTask = (taskId: string, userId: string) => {
-    const newData = { ...data }
-    const currentProject = newData.projects.find((p) => p.id === newData.currentProjectId)
-    if (currentProject) {
-      const task = currentProject.tasks.find((t) => t.id === taskId)
-      if (task) {
-        task.assignedTo = userId || undefined
-        setData(newData)
+  const openTaskDialog = (task: Partial<Task> | null = null) => {
+    setEditingTask(task)
+    setNewTask(
+      task || {
+        title: "",
+        content: "",
+        priority: "MEDIUM",
+        status: "BACKLOG",
+        projectId: data.currentProjectId || "",
+        assigneeId: "",
+        deadlineAt: ""
       }
-    }
+    )
+    setShowTaskDialog(true)
   }
 
-  const deleteTask = (taskId: string) => {
-    const newData = { ...data }
-    const currentProject = newData.projects.find((p) => p.id === newData.currentProjectId)
-    if (currentProject) {
-      currentProject.tasks = currentProject.tasks.filter((t) => t.id !== taskId)
-      setData(newData)
-    }
-  }
-
-  const updateTask = (taskId: string, newContent: string) => {
-    const newData = { ...data }
-    const currentProject = newData.projects.find((p) => p.id === newData.currentProjectId)
-    if (currentProject) {
-      const task = currentProject.tasks.find((t) => t.id === taskId)
-      if (task) {
-        task.content = newContent
-        setData(newData)
-      }
-    }
+  const closeTaskDialog = () => {
+    setShowTaskDialog(false)
+    setEditingTask(null)
   }
 
   const changeProject = (projectId: string) => {
     setData({ ...data, currentProjectId: projectId })
   }
 
-  const currentProject = data.projects.find((p) => p.id === data.currentProjectId)
+  const onDragEnd = async (result: DropResult) => {
+    const { source, destination, draggableId } = result
+
+    if (!destination) return
+
+    if (source.droppableId === destination.droppableId && source.index === destination.index) {
+      return
+    }
+
+    const sourceColumn = data.columns[source.droppableId]
+    const destinationColumn = data.columns[destination.droppableId]
+    if (!sourceColumn || !destinationColumn) return
+
+    const movedTask = sourceColumn.tasks[source.index]
+    if (!movedTask) return
+
+    const updatedSourceTasks = [...sourceColumn.tasks]
+    updatedSourceTasks.splice(source.index, 1)
+
+    const updatedDestinationTasks = [...destinationColumn.tasks]
+    updatedDestinationTasks.splice(destination.index, 0, movedTask)
+
+    setData((prevData) => ({
+      ...prevData,
+      columns: {
+        ...prevData.columns,
+        [source.droppableId]: { ...sourceColumn, tasks: updatedSourceTasks },
+        [destination.droppableId]: { ...destinationColumn, tasks: updatedDestinationTasks }
+      }
+    }))
+
+    try {
+      await updateTaskMutation.mutateAsync({
+        ...movedTask,
+        status: destination.droppableId
+      })
+    } catch (error) {
+      console.error("Error updating task status:", error)
+    }
+  }
+
+  if (tasksLoading || assigneesLoading) return <div>Loading...</div>
+  if (tasksError) return <div>Error loading tasks: {tasksError.message}</div>
 
   return (
     <div className="p-4">
@@ -175,36 +186,92 @@ export const KanbanBoard: React.FC = () => {
             </option>
           ))}
         </select>
-        <input
-          type="text"
-          value={newTask}
-          onChange={(e) => setNewTask(e.target.value)}
-          placeholder="Enter a new task"
-          className="border p-2 mr-2 rounded"
-        />
-        <button onClick={addNewTask} className="bg-blue-500 text-white px-4 py-2 rounded">
+        <button
+          onClick={() => openTaskDialog()}
+          className="bg-blue-500 text-white px-4 py-2 rounded"
+        >
           Add Task
         </button>
       </div>
-      {currentProject && (
-        <DragDropContext onDragEnd={onDragEnd}>
-          <div className="flex space-x-4">
-            {data.columnOrder.map((columnId) => {
-              const column = data.columns[columnId]
-              const tasks = currentProject.tasks.filter((task) => task.status === columnId)
-              return (
-                <Column
-                  key={column.id}
-                  column={{ ...column, tasks }}
-                  users={data.users}
-                  onAssign={assignTask}
-                  onDelete={deleteTask}
-                  onUpdate={updateTask}
-                />
-              )
-            })}
+      <DragDropContext onDragEnd={onDragEnd}>
+        <div className="flex space-x-4">
+          {data.columnOrder.map((columnId) => {
+            const column = data.columns[columnId]
+            return (
+              <Column
+                key={column.id}
+                column={column}
+                assignees={assignees}
+                onAssign={() => {}}
+                onDelete={() => {}}
+                onUpdate={() => {}}
+              />
+            )
+          })}
+        </div>
+      </DragDropContext>
+      {showTaskDialog && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-4 rounded shadow-md w-96">
+            <h2 className="text-xl font-bold mb-4">{editingTask ? "Edit Task" : "Add New Task"}</h2>
+            <input
+              type="text"
+              placeholder="Title"
+              value={newTask.title || ""}
+              onChange={(e) => setNewTask((prev) => ({ ...prev, title: e.target.value }))}
+              className="w-full p-2 border rounded mb-2"
+            />
+            <textarea
+              placeholder="Content"
+              value={newTask.content || ""}
+              onChange={(e) => setNewTask((prev) => ({ ...prev, content: e.target.value }))}
+              className="w-full p-2 border rounded mb-2"
+            />
+            <select
+              value={newTask.priority || "MEDIUM"}
+              onChange={(e) => setNewTask((prev) => ({ ...prev, priority: e.target.value }))}
+              className="w-full p-2 border rounded mb-2"
+            >
+              <option value="CRITICAL">Critical</option>
+              <option value="HIGH">High</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="LOW">Low</option>
+              <option value="OPTIONAL">Optional</option>
+            </select>
+            <input
+              type="date"
+              value={newTask.deadlineAt || ""}
+              onChange={(e) => setNewTask((prev) => ({ ...prev, deadlineAt: e.target.value }))}
+              className="w-full p-2 border rounded mb-2"
+            />
+            <select
+              value={newTask.assigneeId || ""}
+              onChange={(e) => setNewTask((prev) => ({ ...prev, assigneeId: e.target.value }))}
+              className="w-full p-2 border rounded mb-2"
+            >
+              <option value="">Unassigned</option>
+              {assignees?.map((user) => (
+                <option key={user.id} value={user.id}>
+                  {user.name}
+                </option>
+              ))}
+            </select>
+            <div className="flex justify-end">
+              <button
+                onClick={closeTaskDialog}
+                className="bg-gray-500 text-white px-4 py-2 rounded mr-2"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleTaskSubmit}
+                className="bg-blue-500 text-white px-4 py-2 rounded"
+              >
+                {editingTask ? "Update Task" : "Create Task"}
+              </button>
+            </div>
           </div>
-        </DragDropContext>
+        </div>
       )}
     </div>
   )
