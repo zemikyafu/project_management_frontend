@@ -269,8 +269,8 @@ export const ProjectList: React.FC = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => navigate(`/taskes/${project.id}`)}>
-                      View Projects
+                    <DropdownMenuItem onClick={() => navigate(`/tasks/${project.id}`)}>
+                      View Tasks
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => openEditDialog(project)}>
                       Edit
