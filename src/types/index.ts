@@ -27,3 +27,54 @@ export interface Project {
     startDate: string;
     endDate: string;
 }
+
+export enum TaskPriority {
+    CRITICAL = "CRITICAL",
+    HIGH = "HIGH",
+    MEDIUM = "MEDIUM",
+    LOW = "LOW",
+    OPTIONAL = "OPTIONAL"
+}
+
+export enum TaskStatus {
+    BACKLOG = "BACKLOG",
+    IN_PROGRESS = "IN_PROGRESS",
+    IN_REVIEW = "IN_REVIEW",
+    COMPLETED = "COMPLETED"
+}
+const PriorityColors: Record<string, string> = {
+    high: 'text-red-600',
+    medium: 'text-yellow-600',
+    low: 'text-green-600',
+    default: 'text-gray-600',
+  }
+export interface Task {
+    id: string;
+    title: string;
+    content: string;
+    priority: TaskPriority;
+    status: TaskStatus;
+    projectId: string;
+    assigneeId: string;
+    deadlineAt?: string;
+}
+export interface Assignee {
+    id: string;
+    name: string;
+  }
+  
+  export interface Column {
+    id: string;
+    title: string;
+    tasks?: Task[];
+  }
+  
+  export interface KanbanData {
+    columns: {
+      [key: string]: Column;
+    };
+    columnOrder: string[];
+    users: Assignee[];
+    projects: Project[];
+    currentProjectId: string | null;
+  }
