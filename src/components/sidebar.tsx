@@ -27,13 +27,7 @@ const menuItems = [
     subItems: [{ name: "All Roles", href: "/roleManagememt" }]
   },
   {
-    name: "Task Management",
-    href: "/taskManagement",
-    icon: ClipboardList,
-    subItems: [{ name: "Project Task", href: "/taskManagement" }]
-  },
-  {
-    name: "Workspaces",
+    name: "Workspace Management",
     href: "/workspaces",
     icon: Briefcase,
     subItems: [{ name: "Workspaces", href: "/workspaces" }]
@@ -47,7 +41,7 @@ export function Sidebar() {
     <div className="flex flex-col min-h-screen lg:h-full bg-blue-600 text-white border-r w-64">
       <div className="space-y-4 py-4">
         <div className="px-3 py-2">
-          <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">Admin Dashboard</h2>
+          <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">Menu</h2>
           <div className="space-y-1">
             {menuItems.map((item) => (
               <div key={item.name}>
@@ -102,29 +96,4 @@ export function Sidebar() {
       </div>
     </div>
   )
-}
-
-{
-  /* <aside className="w-64 bg-gray-100 p-4">
-<nav className="space-y-2">
-  <Link href="/">
-    <Button variant="ghost" className="w-full justify-start">
-      <Home className="mr-2 h-4 w-4" />
-      Dashboard
-    </Button>
-  </Link>
-  <Link href="/workspaces">
-    <Button variant="ghost" className="w-full justify-start">
-      <Briefcase className="mr-2 h-4 w-4" />
-      Workspaces
-    </Button>
-  </Link>
-  <Link href="/settings">
-    <Button variant="ghost" className="w-full justify-start">
-      <Settings className="mr-2 h-4 w-4" />
-      Settings
-    </Button>
-  </Link>
-</nav>
-</aside> */
 }

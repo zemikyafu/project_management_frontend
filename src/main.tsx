@@ -17,7 +17,6 @@ import "./index.css"
 import { LayoutRoute } from "./pages/layout-route"
 import Workspaces from "./pages/workspaces"
 import WorkspaceProjects from "./pages/workspace-projects"
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -39,9 +38,9 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
         <Route element={<LayoutRoute />}>
           <Route path="/workspaces/:companyId?" element={<Workspaces />} />
           <Route path="/projectes/:workspaceId" element={<WorkspaceProjects />} />
+          <Route path="/tasks/:projectId" element={<TaskManagement />} />
           <Route path="/userManagement" element={<PrivateRoute element={<UserManagement />} />} />
           <Route path="/roleManagement" element={<PrivateRoute element={<RoleManagement />} />} />
-          <Route path="/taskManagement" element={<PrivateRoute element={<TaskManagement />} />} />
           <Route path="/company" element={<PrivateRoute element={<Company />} />} />
           <Route path="/profile" element={<PrivateRoute element={<Profile />} />} />
         </Route>
