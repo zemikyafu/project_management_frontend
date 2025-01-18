@@ -1,3 +1,4 @@
 export interface PrivateRouteProps {
-    element: JSX.Element
-  }
+  element: JSX.Element
+  requiredRole?: string
+}

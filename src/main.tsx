@@ -11,7 +11,6 @@ import { TaskManagement } from "./pages/task-management"
 import PrivateRoute from "./components/private-route"
 import Profile from "./pages/auth/profile"
 import Company from "./pages/company"
-import App from "./App"
 import "./index.css"
 
 import { LayoutRoute } from "./pages/layout-route"
@@ -30,17 +29,22 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <QueryClientProvider client={queryClient}>
     <BrowserRouter>
       <Routes>
-        {/* Public Routes */}
         <Route path="/" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/home" element={<PrivateRoute element={<Home />} />} />
-        {/* Layout Protected Routes */}
+
         <Route element={<LayoutRoute />}>
           <Route path="/workspaces/:companyId?" element={<Workspaces />} />
           <Route path="/projectes/:workspaceId" element={<WorkspaceProjects />} />
           <Route path="/tasks/:projectId" element={<TaskManagement />} />
-          <Route path="/userManagement" element={<PrivateRoute element={<UserManagement />} />} />
-          <Route path="/roleManagement" element={<PrivateRoute element={<RoleManagement />} />} />
+          <Route
+            path="/userManagement"
+            element={<PrivateRoute element={<UserManagement />} requiredRole="company-owner" />}
+          />
+          <Route
+            path="/roleManagement"
+            element={<PrivateRoute element={<RoleManagement />} requiredRole="company-owner" />}
+          />
           <Route path="/company" element={<PrivateRoute element={<Company />} />} />
           <Route path="/profile" element={<PrivateRoute element={<Profile />} />} />
         </Route>
