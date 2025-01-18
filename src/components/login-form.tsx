@@ -25,7 +25,6 @@ export default function LoginForm() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Validate form before submitting
     if (!validateForm()) return
 
     mutation.mutate(formState, {
@@ -47,6 +46,7 @@ export default function LoginForm() {
   }
 
   const validateForm = (): boolean => {
+    console.log("formState validate", formState)
     const newErrors = { email: "", password: "" }
     if (!formState.email) {
       newErrors.email = "Email is required"
