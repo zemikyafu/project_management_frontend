@@ -1,76 +1,83 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchUserCompany,getCompanyById, createCompany,updateCompany } from '../api/company-service';
-import { UUID } from "crypto";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import company from "../api/company-service"
+import { UUID } from "crypto"
 
 interface Company {
-    id: UUID
-    name: string;
-    email: string;
-    address: string;
+  id: UUID
+  name: string
+  email: string
+  address: string
 }
 
-const SELECTED_COMPANY_KEY = "selectedCompany";
+const SELECTED_COMPANY_KEY = "selectedCompany"
 export function selectedCompanyKey() {
-  return [SELECTED_COMPANY_KEY];
+  return [SELECTED_COMPANY_KEY]
 }
 
-const QUERY_KEY="companies";
+const QUERY_KEY = "companies"
 export function companyKey(id?: string) {
   if (id) {
-    return [QUERY_KEY, id];
+    return [QUERY_KEY, id]
   }
 
-  return [QUERY_KEY];
+  return [QUERY_KEY]
 }
 
 export function useSelectedCompany() {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient()
 
-    const setSelectedCompany = (companyId: string) => {
-    queryClient.setQueryData(selectedCompanyKey(),companyId);
+  const setSelectedCompany = (companyId: string) => {
+    queryClient.setQueryData(selectedCompanyKey(), companyId)
+  }
 
-    }
+  const getSelectedCompany = () => {
+    return queryClient.getQueryData<String>(selectedCompanyKey())
+  }
 
-    const getSelectedCompany = () => {
-        return queryClient.getQueryData<String>(selectedCompanyKey());
-    }
-
-    return { setSelectedCompany, getSelectedCompany };
+  return { setSelectedCompany, getSelectedCompany }
 }
 
-
-
-export function  useFetchCompanies  ()  {
-     return useQuery({queryKey:companyKey(),queryFn: () => fetchUserCompany(),staleTime:Infinity,});
-
-};
-export function  useFetchCompany  (companyId: string)  {
-    return useQuery({queryKey:companyKey(companyId),queryFn: () => getCompanyById(companyId),});
-
-};
+export function useFetchCompanies() {
+  return useQuery({
+    queryKey: companyKey(),
+    queryFn: () => company.fetchUserCompany(),
+    staleTime: Infinity
+  })
+}
+export function useFetchCompany(companyId: UUID) {
+  return useQuery({
+    queryKey: companyKey(companyId),
+    queryFn: () => company.getCompanyById(companyId)
+  })
+}
 
 export const useCreateCompany = () => {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient()
 
-   const mutation=useMutation<Company,Error,Omit<Company,'id'>>({
-        mutationFn: (companyData) => createCompany(companyData.name,companyData.email,companyData.address),
-        onSuccess: () => {
-            queryClient.invalidateQueries({queryKey:companyKey()});
-        },
-    });
-    return {newCompany:mutation,errors:mutation.error}
-    
-};
+  const mutation = useMutation<Company, Error, Omit<Company, "id">>({
+    mutationFn: (companyData) =>
+      company.createCompany(companyData.name, companyData.email, companyData.address),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: companyKey() })
+    }
+  })
+  return { newCompany: mutation, errors: mutation.error }
+}
 
 export const useUpdateCompany = () => {
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient()
 
-    const mutation=useMutation<Company,Error,Company>({
-        mutationFn: (companyData) => updateCompany(companyData.id,companyData.name,companyData.email,companyData.address),
-        onSuccess: () => {
-            queryClient.invalidateQueries({queryKey:companyKey()});
-        },
-    });
-    return {updatedCompany:mutation,errors:mutation.error}
-    
-};
+  const mutation = useMutation<Company, Error, Company>({
+    mutationFn: (companyData) =>
+      company.updateCompany(
+        companyData.id,
+        companyData.name,
+        companyData.email,
+        companyData.address
+      ),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: companyKey() })
+    }
+  })
+  return { updatedCompany: mutation, errors: mutation.error }
+}
