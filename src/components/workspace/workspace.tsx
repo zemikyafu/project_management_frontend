@@ -34,7 +34,7 @@ const WorkspaceForm: React.FC = () => {
     companyId: ""
   })
   const [editingWorkspace, setEditingWorkspace] = useState<Workspace | null>(null)
-  const [selectedCompany, setSelectedCompany] = useState<string | null>(null)
+  // const [selectedCompany, setSelectedCompany] = useState<string | null>(null)
 
   const navigate = useNavigate()
   const { companyId } = useParams<{ companyId: UUID }>()
@@ -45,7 +45,7 @@ const WorkspaceForm: React.FC = () => {
   const updateWorkspaceMutation = useUpdateWorkspace(companyId as UUID)
 
   const handleCompanySelect = (id: string) => {
-    setSelectedCompany(id)
+    // setSelectedCompany(id)
     navigate(`/workspaces/${id}`)
   }
 
@@ -68,9 +68,7 @@ const WorkspaceForm: React.FC = () => {
     }
   }
 
-  const handleDelete = (id: string) => {
-    // Add delete logic here
-  }
+  const handleDelete = (id: string) => {}
 
   if (!companyId) {
     return (
