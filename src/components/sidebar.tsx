@@ -2,15 +2,7 @@ import React from "react"
 import { Link, useLocation } from "react-router-dom"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import {
-  LayoutDashboard,
-  Users,
-  ShieldCheck,
-  ChevronDown,
-  ChevronRight,
-  ClipboardList,
-  Briefcase
-} from "lucide-react"
+import { Users, ShieldCheck, ChevronDown, ChevronRight, Briefcase } from "lucide-react"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 
 const menuItems = [
@@ -18,7 +10,10 @@ const menuItems = [
     name: "User Management",
     href: "/userManagement",
     icon: Users,
-    subItems: [{ name: "All Users", href: "/userManagement" }]
+    subItems: [
+      { name: "All Users", href: "/userManagement" },
+      { name: "All Invitations", href: "/invitation" }
+    ]
   },
   {
     name: "Role Management",

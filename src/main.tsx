@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { UserManagement } from "./pages/dashboard/user-managment"
 import { RoleManagement } from "./pages/dashboard/role-management"
 import { TaskManagement } from "./pages/task-management"
+import { InvitationManagement } from "./pages/invitation"
 import PrivateRoute from "./components/private-route"
 import Profile from "./pages/auth/profile"
 import Company from "./pages/company"
@@ -16,6 +17,7 @@ import "./index.css"
 import { LayoutRoute } from "./pages/layout-route"
 import Workspaces from "./pages/workspaces"
 import WorkspaceProjects from "./pages/workspace-projects"
+import OnboardingForm from "./components/onboarding-form"
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -31,12 +33,13 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
       <Routes>
         <Route path="/" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
+        <Route path="/onboarding/:invitationId" element={<OnboardingForm />} />
         <Route path="/home" element={<PrivateRoute element={<Home />} />} />
-
         <Route element={<LayoutRoute />}>
           <Route path="/workspaces/:companyId?" element={<Workspaces />} />
           <Route path="/projectes/:workspaceId" element={<WorkspaceProjects />} />
           <Route path="/tasks/:projectId" element={<TaskManagement />} />
+          <Route path="/invitation/:companyId?" element={<InvitationManagement />} />
           <Route
             path="/userManagement"
             element={<PrivateRoute element={<UserManagement />} requiredRole="company-owner" />}
