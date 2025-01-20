@@ -1,7 +1,12 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import AuthService from "../api/auth-service";
-import { UUID } from "crypto";
-import { ProfileFormValues, LoginFormValues,UserRead,SigninResponse,SignupFormValues } from "../schemas/auth";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import AuthService from "../api/auth-service"
+import { UUID } from "crypto"
+import {
+  ProfileFormValues,
+  LoginFormValues,
+  SignupFormValues,
+  OnboardingFormValues
+} from "../schemas/auth"
 
 const QUERY_KEY = "profile"
 
@@ -12,44 +17,55 @@ export function profilQueryKey(id?: string) {
 
   return [QUERY_KEY]
 }
-export function usefetchProfile(userId: UUID  ) {
+export function usefetchProfile(userId: UUID) {
   const { data, error, isPending } = useQuery({
-    queryKey:profilQueryKey(),
+    queryKey: profilQueryKey(),
     queryFn: () => AuthService.getUserProfile(userId),
-    enabled: !!userId ,
-    staleTime: 1000 * 60 * 50, 
-
-  });
+    enabled: !!userId,
+    staleTime: 1000 * 60 * 50
+  })
 
   return {
     profile: data,
     error,
-    isPending,
-  };
+    isPending
+  }
 }
 
 export function useUpdateProfile(userId: UUID, values: ProfileFormValues) {
-    const queryClient = useQueryClient();
-  
-    const mutation= useMutation<UserRead, Error, ProfileFormValues>({
-      mutationFn: (profileData: ProfileFormValues) => 
-        AuthService.updateProfile(userId, profileData.name, profileData.email),
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: profilQueryKey(userId) });
-      },
-    });
+  const queryClient = useQueryClient()
 
-    return{newProfile:mutation,errors:mutation.error}
-  }
+  const mutation = useMutation({
+    mutationFn: (profileData: ProfileFormValues) =>
+      AuthService.updateProfile(userId, profileData.name, profileData.email),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: profilQueryKey(userId) })
+    }
+  })
 
-  export function useLogin() {
-    const mutation= useMutation<SigninResponse,Error,LoginFormValues>({mutationFn:(credentials:LoginFormValues)=>AuthService.login(credentials.email,credentials.password)});
-    return mutation;
-  }
+  return { newProfile: mutation, errors: mutation.error }
+}
 
-  export function useSignup() {
-    const mutation= useMutation<UserRead,Error,SignupFormValues>({mutationFn:(signupForm:SignupFormValues)=>AuthService.register(signupForm.name,signupForm.email,signupForm.password)});
-    return mutation;
-  }
+export function useLogin() {
+  const mutation = useMutation({
+    mutationFn: (credentials: LoginFormValues) =>
+      AuthService.login(credentials.email, credentials.password)
+  })
+  return mutation
+}
 
+export function useSignup() {
+  const mutation = useMutation({
+    mutationFn: (signupForm: SignupFormValues) =>
+      AuthService.register(signupForm.name, signupForm.email, signupForm.password)
+  })
+  return mutation
+}
 
+export function completeOnboarding(invitationId: UUID) {
+  const mutation = useMutation({
+    mutationFn: (onboardingForm: OnboardingFormValues) =>
+      AuthService.completeOnBoarding(invitationId, onboardingForm.name, onboardingForm.password)
+  })
+  return mutation
+}

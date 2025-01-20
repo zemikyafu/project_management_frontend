@@ -1,5 +1,4 @@
 import { useQuery, useMutation, QueryClient, useQueryClient } from "@tanstack/react-query"
-import { Status, User } from "../types"
 import { UUID } from "crypto"
 import UserService from "../api/user-service"
 
