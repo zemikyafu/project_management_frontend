@@ -45,7 +45,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
             element={<PrivateRoute element={<UserManagement />} requiredRole="company-owner" />}
           />
           <Route
-            path="/roleManagement"
+            path="/roleManagement/:companyId?"
             element={<PrivateRoute element={<RoleManagement />} requiredRole="company-owner" />}
           />
           <Route path="/company" element={<PrivateRoute element={<Company />} />} />
