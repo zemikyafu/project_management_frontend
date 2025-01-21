@@ -3,12 +3,10 @@ import { useQueryClient, useMutation, useQuery } from "@tanstack/react-query"
 interface Permission {
   id: UUID
   name: string
-  // Add other properties as needed
 }
 import RolePermissionService from "../api/role-permission-service"
-import Company from "@/pages/company"
-import { getCompanyById } from "@/api/company-service"
 import { UUID } from "crypto"
+import { RoleCreateFormValues, RolePermissionFormValues } from "@/schemas/role-permission"
 
 const QUERY_KEY_ROLE = "roles"
 const QUERY_KEY_PERMISSION = "permissions"
@@ -43,7 +41,6 @@ export function useFetchRoles(companyId: UUID) {
     queryFn: () => RolePermissionService.getRoles(companyId),
     staleTime: Infinity
   })
-
   return {
     roles: data,
     error,
@@ -52,41 +49,61 @@ export function useFetchRoles(companyId: UUID) {
 }
 
 export function useFetchPermissions() {
-  const { data, error, isPending } = useQuery({
+  const { data, error, isLoading } = useQuery({
     queryKey: permissionKey(),
-    queryFn: async () => {
-      const permissions = await RolePermissionService.getPermissions()
-      const groupedPermissions: { [group: string]: Permission[] } = {}
-      permissions.forEach((permission: Permission) => {
-        const group = permission.name.split("-")[0] || "Other"
-        if (!groupedPermissions[group]) {
-          groupedPermissions[group] = []
-        }
-        groupedPermissions[group].push(permission)
-      })
-      return groupedPermissions
-    }
+    queryFn: async () => RolePermissionService.getPermissions()
     // staleTime: Infinity,
   })
 
   return {
     permissions: data,
     error,
-    isPending
+    isLoading
   }
 }
 
-export function useFetchRolePermissions(roleId: UUID) {
-  const { data, error, isPending } = useQuery({
-    queryKey: rolePermissionKey(roleId),
-    queryFn: () => RolePermissionService.getRolePermissions(roleId),
-    enabled: !!roleId,
+export function useFetchRolePermissions(companyId: UUID) {
+  const { data, error, isLoading } = useQuery({
+    queryKey: rolePermissionKey(companyId),
+    queryFn: () => RolePermissionService.getRolePermissions(companyId),
+    enabled: !!companyId,
     staleTime: Infinity
   })
 
   return {
     rolePermissions: data,
     error,
-    isPending
+    isLoading
   }
+}
+
+export function useCreateRole() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (roleData: RoleCreateFormValues) => RolePermissionService.createRole(roleData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: roleKey() })
+    }
+  })
+}
+
+export function useDeleteRolePermission() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (rolePermissionData: RolePermissionFormValues) =>
+      RolePermissionService.deleteRolePermission(rolePermissionData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: rolePermissionKey() })
+    }
+  })
+}
+export function useCreateRolePermission() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (rolePermissionData: RolePermissionFormValues) =>
+      RolePermissionService.createRolePermission(rolePermissionData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: rolePermissionKey() })
+    }
+  })
 }
