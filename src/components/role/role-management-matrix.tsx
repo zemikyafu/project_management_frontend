@@ -1,133 +1,135 @@
-import React, { useEffect, useState } from "react"
+import React, { useState, useMemo, useEffect } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
 import { AddRoleDialog } from "./role-dialog"
 import { PermissionGroup } from "./permission-group"
-import { Role, Permission } from "../../types/role"
+import type { Permission, RolePermission } from "../../types/role"
 import {
   useFetchRoles,
   useFetchRolePermissions,
-  useFetchPermissions
+  useFetchPermissions,
+  useCreateRole,
+  useDeleteRolePermission,
+  useCreateRolePermission
 } from "../../features/role-hook"
+import { useParams, useNavigate } from "react-router-dom"
+import { useFetchCompanies } from "@/features/company-hook"
+import type { UUID } from "crypto"
+import type { Company } from "@/types"
+import { RoleCreateFormValues } from "@/schemas/role-permission"
 
 export function RoleManagementMatrix() {
-  const [roles, setRoles] = useState<Role[]>([])
-  const [permissions, setPermissions] = useState<{ [roleName: string]: Set<Permission> }>({})
-  const [allPermissions, setAllPermissions] = useState<{ [group: string]: Permission[] }>({}) // Grouped permissions
   const [activeTab, setActiveTab] = useState<string | undefined>(undefined)
-  const token = localStorage.getItem("token")
-  const companyId = "8f22b299-6017-435c-9df2-d50f19a4bcf0"
+  const { companyId } = useParams<{ companyId: UUID }>()
+  const navigate = useNavigate()
 
-  // const { roles: rolesData, error: rolesError, isPending: rolesPending } = useFetchRoles(companyId)
+  const { data: companies, isLoading: companiesLoading } = useFetchCompanies()
+  const { roles, isLoading: rolesLoading, error: rolesError } = useFetchRoles(companyId)
+  const {
+    permissions,
+    isLoading: permissionsLoading,
+    error: permissionsError
+  } = useFetchPermissions()
+  const {
+    rolePermissions,
+    isLoading: rolePermissionsLoading,
+    error: rolePermissionsError
+  } = useFetchRolePermissions(companyId)
 
-  // const {
-  //   permissions: permissionsData,
-  //   error: permissionsError,
-  //   isPending: permissionsPending
-  // } = useFetchPermissions()
-
-  // const {
-  //   rolePermissions: rolePermissionsData,
-  //   error: rolePermissionsError,
-  //   isPending: rolePermissionsPending
-  // } = useFetchRolePermissions(roleId)
-
-  useEffect(() => {
-    // console.log("rolesData", rolesData)
-    fetch(`http://localhost:8080/api/v1/roles/companyId/${companyId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.status === "success") {
-          const fetchedRoles = data.data.map((role: any) => ({
-            id: role.id,
-            name: role.name
-          }))
-          fetchedRoles.sort((a: Role, b: Role) =>
-            a.name === "Admin" ? -1 : b.name === "Admin" ? 1 : 0
-          )
-
-          setRoles(fetchedRoles)
-          setActiveTab(fetchedRoles[0]?.name || null)
-        }
-      })
-      .catch((error) => console.error("Failed to fetch roles:", error))
-  }, [])
-
-  useEffect(() => {
-    fetch("http://localhost:8080/api/v1/permissions", {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.status === "success") {
-          const groupedPermissions: { [group: string]: Permission[] } = {}
-
-          data.data.forEach((permission: any) => {
-            const group = permission.name.split("-")[0] || "Other"
-            if (!groupedPermissions[group]) {
-              groupedPermissions[group] = []
-            }
-            groupedPermissions[group].push(permission.name)
-          })
-
-          setAllPermissions(groupedPermissions)
-        }
-      })
-      .catch((error) => console.error("Failed to fetch permissions:", error))
-  }, [])
-
-  useEffect(() => {
-    if (!roles.length) return
-
-    const fetchPermissionsForRoles = async () => {
-      const rolePermissions: { [roleName: string]: Set<Permission> } = {}
-
-      await Promise.all(
-        roles.map(async (role) => {
-          const response = await fetch(
-            `http://localhost:8080/api/v1/roles/${role.id}/permissions`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`
-              }
-            }
-          )
-          const data = await response.json()
-          if (data.status === "success") {
-            const permissionsSet: Set<Permission> = new Set(
-              data.data.map((entry: any) => entry.permission.name as Permission)
-            )
-            rolePermissions[role.name] = permissionsSet
-          }
-        })
-      )
-
-      setPermissions(rolePermissions)
-    }
-
-    fetchPermissionsForRoles()
-  }, [roles])
-
-  const togglePermission = (roleName: string, permission: Permission) => {
-    setPermissions((prevPermissions) => {
-      const rolePermissions = prevPermissions[roleName] || new Set()
-      const updatedPermissions = rolePermissions.has(permission)
-        ? new Set([...rolePermissions].filter((p) => p !== permission))
-        : new Set([...rolePermissions, permission])
-
-      return { ...prevPermissions, [roleName]: updatedPermissions }
-    })
+  const mutateRoles = useCreateRole()
+  const mutateDeleteRolePermission = useDeleteRolePermission()
+  const mutateCreateRolePermission = useCreateRolePermission()
+  const handleCompanySelect = (id: string) => {
+    navigate(`/roleManagement/${id}`)
   }
 
-  const addNewRole = (roleName: string) => {
-    setRoles((prevRoles) => [...prevRoles, { name: roleName, permissions: new Set() }])
-    setActiveTab(roleName)
+  const allPermissions = useMemo(() => {
+    const permissionGroups: { [group: string]: Permission[] } = {}
+    permissions?.forEach((permission) => {
+      const group = permission.name.split("-")[0] || "Other"
+      if (!permissionGroups[group]) {
+        permissionGroups[group] = []
+      }
+      permissionGroups[group].push(permission)
+    })
+    return permissionGroups
+  }, [permissions])
+
+  const rolePermissionMap = useMemo(() => {
+    const map: { [roleId: string]: Set<string> } = {}
+    rolePermissions?.forEach((rp: RolePermission) => {
+      if (!map[rp.role.id]) {
+        map[rp.role.id] = new Set()
+      }
+      map[rp.role.id].add(rp.permission.id)
+    })
+    return map
+  }, [rolePermissions])
+
+  const togglePermission = async (roleId: string, permissionId: string) => {
+    try {
+      const existingRelation = rolePermissions?.find(
+        (rp) => rp.role.id === roleId && rp.permission.id === permissionId
+      )
+      if (existingRelation) {
+        await mutateDeleteRolePermission.mutateAsync(existingRelation.id)
+      } else {
+        await mutateCreateRolePermission.mutateAsync({ roleId, permissionId })
+      }
+    } catch (error) {
+      console.error("Error toggling permission:", error)
+    }
+  }
+
+  const addNewRole = async (roleName: string) => {
+    if (!companyId) return
+
+    const newRole: RoleCreateFormValues = {
+      name: roleName,
+      companyId: companyId
+    }
+
+    const response = await mutateRoles.mutateAsync(newRole)
+    setActiveTab(response.id)
+  }
+
+  useEffect(() => {
+    if (roles && roles.length > 0 && !activeTab) {
+      setActiveTab(roles[0].id)
+    }
+  }, [roles, activeTab])
+
+  if (!companyId) {
+    return (
+      <div className="flex flex-col items-center py-10">
+        {companiesLoading ? (
+          <p className="text-xl">Loading companies...</p>
+        ) : (
+          <>
+            <p className="text-xl mb-4">Select a company to view the Role permission matrix</p>
+            <select
+              onChange={(e) => handleCompanySelect(e.target.value)}
+              className="p-3 border rounded w-80 bg-white shadow-md"
+            >
+              <option value="">Select a company</option>
+              {companies?.map((company: Company) => (
+                <option key={company.id} value={company.id}>
+                  {company.name}
+                </option>
+              ))}
+            </select>
+          </>
+        )}
+      </div>
+    )
+  }
+
+  if (rolesLoading || permissionsLoading || rolePermissionsLoading) {
+    return <div>Loading Role and permissions...</div>
+  }
+
+  if (rolesError || permissionsError || rolePermissionsError) {
+    return <div>Error loading Role Management Matrix.</div>
   }
 
   return (
@@ -138,14 +140,14 @@ export function RoleManagementMatrix() {
       </div>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-3 lg:grid-cols-5 h-14 items-stretch">
-          {roles.map((role) => (
-            <TabsTrigger key={role.name} value={role.name} className="text-lg">
+          {roles?.map((role) => (
+            <TabsTrigger key={role.id} value={role.id} className="text-lg">
               {role.name}
             </TabsTrigger>
           ))}
         </TabsList>
-        {roles.map((role) => (
-          <TabsContent key={role.name} value={role.name}>
+        {roles?.map((role) => (
+          <TabsContent key={role.id} value={role.id}>
             <Card>
               <CardContent className="p-6">
                 <div className="grid gap-6">
@@ -154,8 +156,8 @@ export function RoleManagementMatrix() {
                       key={group}
                       group={group}
                       permissions={groupPermissions}
-                      rolePermissions={permissions[role.name] || new Set()}
-                      onTogglePermission={(permission) => togglePermission(role.name, permission)}
+                      rolePermissions={rolePermissionMap[role.id] || new Set()}
+                      onTogglePermission={(permissionId) => togglePermission(role.id, permissionId)}
                     />
                   ))}
                 </div>

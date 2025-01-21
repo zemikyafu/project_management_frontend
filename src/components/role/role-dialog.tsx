@@ -1,7 +1,4 @@
-import React, { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { useState } from "react"
 import {
   Dialog,
   DialogContent,
@@ -9,19 +6,23 @@ import {
   DialogTitle,
   DialogTrigger
 } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 interface AddRoleDialogProps {
   onAddRole: (roleName: string) => void
 }
 
 export function AddRoleDialog({ onAddRole }: AddRoleDialogProps) {
+  const [roleName, setRoleName] = useState("")
   const [isOpen, setIsOpen] = useState(false)
-  const [newRoleName, setNewRoleName] = useState("")
 
-  const handleAddRole = () => {
-    if (newRoleName.trim()) {
-      onAddRole(newRoleName.trim())
-      setNewRoleName("")
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (roleName.trim()) {
+      onAddRole(roleName.trim())
+      setRoleName("")
       setIsOpen(false)
     }
   }
@@ -29,26 +30,24 @@ export function AddRoleDialog({ onAddRole }: AddRoleDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button size="lg">Create New Role</Button>
+        <Button>Add New Role</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create New Role</DialogTitle>
+          <DialogTitle>Add New Role</DialogTitle>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right">
-              Role Name
-            </Label>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="roleName">Role Name</Label>
             <Input
-              id="name"
-              value={newRoleName}
-              onChange={(e) => setNewRoleName(e.target.value)}
-              className="col-span-3"
+              id="roleName"
+              value={roleName}
+              onChange={(e) => setRoleName(e.target.value)}
+              placeholder="Enter role name"
             />
           </div>
-        </div>
-        <Button onClick={handleAddRole}>Add Role</Button>
+          <Button type="submit">Add Role</Button>
+        </form>
       </DialogContent>
     </Dialog>
   )
