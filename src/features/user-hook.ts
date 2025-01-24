@@ -9,10 +9,10 @@ export function getQueryKey(id?: string) {
   }
   return [QUERY_KEY]
 }
-export function useFetchUser() {
+export function useFetchUser(companyId: UUID) {
   const { data, error, isLoading } = useQuery<User>({
     queryKey: getQueryKey(),
-    queryFn: () => UserService.fetchCompanyUsers(),
+    queryFn: () => UserService.fetchCompanyUsers(companyId),
     staleTime: Infinity
   })
   return { users: data, error, isLoading }

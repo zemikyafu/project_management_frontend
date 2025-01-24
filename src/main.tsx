@@ -37,11 +37,11 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
         <Route path="/home" element={<PrivateRoute element={<Home />} />} />
         <Route element={<LayoutRoute />}>
           <Route path="/workspaces/:companyId?" element={<Workspaces />} />
-          <Route path="/projectes/:workspaceId" element={<WorkspaceProjects />} />
-          <Route path="/tasks/:projectId" element={<TaskManagement />} />
+          <Route path="/projects/:workspaceId" element={<WorkspaceProjects />} />
+          <Route path="/tasks/:workspaceId/:projectId" element={<TaskManagement />} />
           <Route path="/invitation/:companyId?" element={<InvitationManagement />} />
           <Route
-            path="/userManagement"
+            path="/userManagement/:companyId?"
             element={<PrivateRoute element={<UserManagement />} requiredRole="company-owner" />}
           />
           <Route

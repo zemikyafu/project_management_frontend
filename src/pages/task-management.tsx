@@ -1,14 +1,19 @@
-import { Sidebar } from "../components/sidebar"
-import { Navbar } from "../components/navbar"
 import { KanbanBoard } from "../components/task/kanban-board"
 import { useParams } from "react-router-dom"
+import { useFetchProjects } from "../features/project-hook"
+import { UUID } from "crypto"
+import { Project } from "@/types"
+
 export function TaskManagement() {
-  const projectId = useParams<{ projectId: string }>().projectId
+  const { workspaceId, projectId } = useParams()
+
+  const { projects, error, isLoading } = useFetchProjects(workspaceId as UUID)
+
   return (
     <div className="min-h-screen flex flex-col">
       <div className="flex flex-1">
         <main className="flex-1 p-6 overflow-auto">
-          <KanbanBoard />
+          <KanbanBoard projects={projects || []} projectId={projectId || ""} />
         </main>
       </div>
     </div>

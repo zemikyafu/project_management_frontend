@@ -18,7 +18,7 @@ export function Home() {
       <aside className="w-1/10 bg-blue-600 text-white flex flex-col justify-between p-6">
         <div>
           <h1 className="text-3xl font-bold mb-4">Project Management</h1>
-          <p className="text-lg mb-6">Plan, and collaborate, and execute projects.</p>
+          <p className="text-lg mb-6">Plan, collaborate, and execute projects.</p>
           <a
             href="/company"
             className="bg-green-500 hover:bg-green-600 text-white px-6 py-6 rounded-md text-lg block text-center mb-4 w-full"
@@ -29,7 +29,7 @@ export function Home() {
             <p className="bg-blue-700 text-center px-6 py-6 rounded-md">Loading companies...</p>
           )}
           {isError && (
-            <p className="bg-red-500 text-center px-6 py-6 rounded-md">Failed to fetch companies</p>
+            <p className="bg-red-500 text-center px-6 py-6 rounded-md">No company to fetch </p>
           )}
           {!isLoading && !isError && companies?.length === 0 && (
             <p className="bg-blue-700 text-center px-6 py-6 rounded-md">
@@ -50,13 +50,13 @@ export function Home() {
             </div>
           )}
         </div>
-        <p className="text-sm mt-8">© 2025 Project Management Inc.</p>
+        <p className="text-sm mt-8"></p>
       </aside>
       <div className="flex-grow flex flex-col">
         <Navbar />
         <div className="flex-grow bg-gray-100 py-16 px-6">
           <div className="container mx-auto text-center">
-            <h2 className="text-3xl font-semibold mb-10">Why Choose Us?</h2>
+            <h2 className="text-3xl font-semibold mb-10"></h2>
             <div className="grid md:grid-cols-3 gap-8">
               <div className="bg-white p-6 rounded-lg shadow-md">
                 <h3 className="text-2xl font-semibold mb-2">Manage Workspace</h3>

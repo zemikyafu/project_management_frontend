@@ -72,23 +72,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ projects, projectId })
     loadProjects()
   }, [projects])
 
-  // useEffect(() => {
-  //   if (tasks.length) {
-  //     setData((prevData) => ({
-  //       ...prevData,
-  //       columns: prevData.columnOrder.reduce((columns, columnId) => {
-  //         columns[columnId] = {
-  //           ...prevData.columns[columnId],
-  //           tasks: tasks.filter((task) => task.status === columnId)
-  //         }
-  //         return columns
-  //       }, {})
-  //     }))
-  //   }
-  // }, [tasks, data.currentProjectId])
   useEffect(() => {
     if (!tasks.length) {
-      // Clear tasks from all columns if no tasks are available for the selected project
       setData((prevData) => ({
         ...prevData,
         columns: prevData.columnOrder.reduce((columns, columnId) => {
@@ -100,7 +85,6 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ projects, projectId })
         }, {})
       }))
     } else {
-      // Populate tasks for the selected project
       setData((prevData) => ({
         ...prevData,
         columns: prevData.columnOrder.reduce((columns, columnId) => {

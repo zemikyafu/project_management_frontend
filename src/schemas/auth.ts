@@ -6,28 +6,28 @@ export const LoginSchema = z.object({
 })
 
 export const signupSchema = z.object({
-  name: z.string().min(1, "Name cannot be empty"),
+  name: z.string().nonempty("Name cannot be empty"),
   email: z.string().email("Invalid email address"),
   password: z.string().min(8, "Password must be at least 8 characters long")
 })
 
 export const ProfileSchema = z.object({
-  name: z.string().min(1, "Name cannot be empty"),
+  name: z.string().nonempty("Name cannot be empty"),
   email: z.string().email("Invalid email address")
 })
 export const UserReadSchema = z.object({
   userId: z.string().uuid("Invalid UUID"),
-  name: z.string().min(1, "Name cannot be empty"),
+  name: z.string().nonempty("Name cannot be empty"),
   email: z.string().email("Invalid email address"),
   status: z.enum(["ACTIVE", "INACTIVE", "BLOCKED"])
 })
 export const SigninResponseSchema = z.object({
   token: z.string(),
   userId: z.string().uuid("Invalid UUID"),
-  name: z.string().min(1, "Name cannot be empty")
+  name: z.string().nonempty("Name cannot be empty")
 })
 export const OnboardingRequestSchema = z.object({
-  name: z.string().min(1, "Name cannot be empty"),
+  name: z.string().nonempty("Name cannot be empty"),
   password: z.string().min(8, "Password must be at least 8 characters long")
 })
 export const OnboardingResponseSchema = z.object({

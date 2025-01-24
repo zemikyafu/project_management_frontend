@@ -3,38 +3,28 @@ import { useParams, useNavigate } from "react-router-dom"
 import { ProjectList } from "@/components/project/project-list"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
-
+import { useFetchWorkspaceByWorkspaceId } from "@/features/workspace-hook"
+import { UUID } from "crypto"
 const WorkspaceProjects: React.FC = () => {
-  const [workspaceName, setWorkspaceName] = useState("")
-  const [companyId, setCompanyId] = useState("")
-  const { id: workspaceId } = useParams<{ id: string }>()
+  const { workspaceId } = useParams<{ workspaceId: string }>()
+  const { workspace } = useFetchWorkspaceByWorkspaceId(workspaceId as UUID)
   const navigate = useNavigate()
-
-  const handleSelectedWorkspace = ({
-    companyId,
-    workspaceName
-  }: {
-    companyId: string
-    workspaceName: string
-  }) => {
-    setWorkspaceName(workspaceName)
-    setCompanyId(companyId)
-  }
 
   return (
     <div>
       <div className="flex items-center mb-6">
         <Button
           variant="ghost"
-          onClick={() => navigate(`/workspaces/${companyId}`)}
+          onClick={() =>
+            navigate(workspace ? `/workspaces/${workspace.company.id}` : `/workspaces/`)
+          }
           className="mr-4"
         >
           <ArrowLeft className="mr-2 h-4 w-4" /> Back
         </Button>
-        <h1 className="text-2xl font-bold">Projects in {workspaceName}</h1>
+        <h1 className="text-2xl font-bold">Projects in {workspace?.name || ""}</h1>
       </div>
-      {/* <ProjectList workspaceId={workspaceId!} onSelectedWorkspace={handleSelectedWorkspace} /> */}
-      <ProjectList />
+      {workspaceId && <ProjectList workspaceId={workspaceId} />}
     </div>
   )
 }
