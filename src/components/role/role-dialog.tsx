@@ -4,7 +4,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
+  DialogTrigger,
+  DialogOverlay
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -32,6 +33,7 @@ export function AddRoleDialog({ onAddRole }: AddRoleDialogProps) {
       <DialogTrigger asChild>
         <Button>Add New Role</Button>
       </DialogTrigger>
+      <DialogOverlay className="bg-black bg-opacity-10" />
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Add New Role</DialogTitle>

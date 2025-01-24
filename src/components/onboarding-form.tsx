@@ -25,30 +25,29 @@ export default function OnboardingForm() {
     password: ""
   })
   const [errorMessages, setErrorMessages] = useState<Record<string, string>>({})
+  const [errorMessage, setErrorMessage] = useState("")
   const { invitationId } = useParams()
   const navigate = useNavigate()
 
-  const CenteredContent = ({ children }: { children: React.ReactNode }) => (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gray-100 p-4">
-      {children}
-    </div>
-  )
+  // const CenteredContent = ({ children }: { children: React.ReactNode }) => (
+  //   <div className="min-h-screen w-full flex items-center justify-center bg-gray-100 p-4">
+  //     {children}
+  //   </div>
+  // )
 
   if (!invitationId) {
     return (
-      <CenteredContent>
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Error</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>Invitation ID is required to complete onboarding.</AlertDescription>
-            </Alert>
-          </CardContent>
-        </Card>
-      </CenteredContent>
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle>Error</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>Invitation ID is required to complete onboarding.</AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
     )
   }
   const mutation = completeOnboarding(invitationId as UUID)
@@ -71,7 +70,7 @@ export default function OnboardingForm() {
           navigate("/home")
         },
         onError: (err: Error) => {
-          setErrorMessages({ form: err.message })
+          setErrorMessage(err.message)
         }
       })
     } catch (err) {
@@ -87,9 +86,15 @@ export default function OnboardingForm() {
   }
 
   return (
-    <CenteredContent>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
+          {errorMessage && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{errorMessage}</AlertDescription>
+            </Alert>
+          )}
           <CardTitle>Onboarding</CardTitle>
           <CardDescription>Complete Onboarding to get started</CardDescription>
         </CardHeader>
@@ -141,6 +146,6 @@ export default function OnboardingForm() {
           </CardFooter>
         </form>
       </Card>
-    </CenteredContent>
+    </div>
   )
 }

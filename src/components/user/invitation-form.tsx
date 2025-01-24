@@ -5,7 +5,16 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { useFetchWorkspaces } from "@/features/workspace-hook"
 import { useFetchRoles } from "@/features/role-hook"
-
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogOverlay,
+  // DialogBody,
+  DialogFooter
+} from "@/components/ui/dialog"
 import { Workspace, Role } from "@/types"
 import { UUID } from "crypto"
 import { useCreateInvitation } from "@/features/invitation-hook"
@@ -39,12 +48,13 @@ export function InviteUserForm({ companyId, onCancel }: InviteUserFormProps) {
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle>Invite User</CardTitle>
-      </CardHeader>
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-6">
+    <Dialog open>
+      <DialogOverlay className="bg-black bg-opacity-5" />
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Invite User</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit}>
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -56,9 +66,9 @@ export function InviteUserForm({ companyId, onCancel }: InviteUserFormProps) {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="name">Workspace</Label>
-
+            <Label htmlFor="workspace">Workspace</Label>
             <select
+              id="workspace"
               onChange={(e) => setWorkspaceId(e.target.value)}
               value={workspaceId}
               className="p-3 border rounded w-full bg-white shadow-md"
@@ -80,11 +90,10 @@ export function InviteUserForm({ companyId, onCancel }: InviteUserFormProps) {
               )}
             </select>
           </div>
-
           <div className="space-y-2">
-            <Label htmlFor="name">Role</Label>
-
+            <Label htmlFor="role">Role</Label>
             <select
+              id="role"
               onChange={(e) => setRoleId(e.target.value)}
               value={roleId}
               required
@@ -106,14 +115,14 @@ export function InviteUserForm({ companyId, onCancel }: InviteUserFormProps) {
               )}
             </select>
           </div>
-        </CardContent>
-        <CardFooter className="flex justify-end space-x-4">
-          <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button type="submit">Invite</Button>
-        </CardFooter>
-      </form>
-    </Card>
+          <DialogFooter className="flex justify-end space-x-4">
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+            <Button type="submit">Invite</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   )
 }

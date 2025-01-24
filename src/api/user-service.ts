@@ -2,8 +2,8 @@ import { UUID } from "crypto"
 import api from "."
 
 const UserService = {
-  async fetchCompanyUsers() {
-    const response = await api.get(`/users`)
+  async fetchCompanyUsers(companyId: UUID) {
+    const response = await api.get(`/users/company/${companyId}`)
     return response.data.data
   },
   async updateUserStatus(id: UUID, status: string) {

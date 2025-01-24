@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from "react"
+import { useNavigate, useParams } from "react-router-dom"
 import { DragDropContext, DropResult } from "react-beautiful-dnd"
 import { Column } from "./board-column"
-import { KanbanData, Task, Assignee, Project } from "../../types/index"
+import { KanbanData, Task, Project } from "../../types/index"
 import {
   useFetchTasks,
-  usefechAssignFromWorkspace,
+  useFetchAssigneesFromWorkspace,
   useCreateTask,
   useUpdateTask
 } from "../../features/task-hook"
-import { useParams } from "react-router-dom"
 import { UUID } from "crypto"
+import { Button } from "@/components/ui/button"
+import { ArrowLeft } from "lucide-react"
 
 const initialData: KanbanData = {
   columns: {
@@ -24,8 +26,14 @@ const initialData: KanbanData = {
   currentProjectId: null
 }
 
-export const KanbanBoard: React.FC = () => {
-  const { projectId } = useParams<{ projectId: string }>()
+interface KanbanBoardProps {
+  projects: Project[]
+  projectId: string
+}
+
+export const KanbanBoard: React.FC<KanbanBoardProps> = ({ projects, projectId }) => {
+  const { workspaceId } = useParams()
+  const navigate = useNavigate()
   const [data, setData] = useState<KanbanData>(initialData)
   const [showTaskDialog, setShowTaskDialog] = useState(false)
   const [editingTask, setEditingTask] = useState<Partial<Task> | null>(null)
@@ -43,22 +51,18 @@ export const KanbanBoard: React.FC = () => {
     tasks = [],
     error: tasksError,
     isLoading: tasksLoading
-  } = useFetchTasks(projectId as UUID)
+  } = useFetchTasks(data.currentProjectId as UUID)
   const {
     assignees = [],
     error: assigneesError,
     isLoading: assigneesLoading
-  } = usefechAssignFromWorkspace(projectId as UUID)
+  } = useFetchAssigneesFromWorkspace(projectId as UUID)
+
   const createTaskMutation = useCreateTask(projectId as UUID)
   const updateTaskMutation = useUpdateTask(projectId as UUID)
 
-  const fetchProjects = async (): Promise<Project[]> => {
-    return [{ id: projectId, name: "Backend Project" }]
-  }
-
   useEffect(() => {
     const loadProjects = async () => {
-      const projects = await fetchProjects()
       setData((prevData) => ({
         ...prevData,
         projects,
@@ -66,10 +70,37 @@ export const KanbanBoard: React.FC = () => {
       }))
     }
     loadProjects()
-  }, [])
+  }, [projects])
 
+  // useEffect(() => {
+  //   if (tasks.length) {
+  //     setData((prevData) => ({
+  //       ...prevData,
+  //       columns: prevData.columnOrder.reduce((columns, columnId) => {
+  //         columns[columnId] = {
+  //           ...prevData.columns[columnId],
+  //           tasks: tasks.filter((task) => task.status === columnId)
+  //         }
+  //         return columns
+  //       }, {})
+  //     }))
+  //   }
+  // }, [tasks, data.currentProjectId])
   useEffect(() => {
-    if (tasks.length) {
+    if (!tasks.length) {
+      // Clear tasks from all columns if no tasks are available for the selected project
+      setData((prevData) => ({
+        ...prevData,
+        columns: prevData.columnOrder.reduce((columns, columnId) => {
+          columns[columnId] = {
+            ...prevData.columns[columnId],
+            tasks: []
+          }
+          return columns
+        }, {})
+      }))
+    } else {
+      // Populate tasks for the selected project
       setData((prevData) => ({
         ...prevData,
         columns: prevData.columnOrder.reduce((columns, columnId) => {
@@ -81,7 +112,15 @@ export const KanbanBoard: React.FC = () => {
         }, {})
       }))
     }
-  }, [tasks])
+  }, [tasks, data.currentProjectId])
+
+  const changeProject = (projectId: string) => {
+    console.log("projectId", projectId)
+    setData((prevData) => ({
+      ...prevData,
+      currentProjectId: projectId
+    }))
+  }
 
   const handleTaskSubmit = () => {
     if (!newTask.title || !newTask.content || !data.currentProjectId) return
@@ -92,14 +131,13 @@ export const KanbanBoard: React.FC = () => {
         ...newTask
       })
     } else {
-      createTaskMutation.mutate({
+      createTaskMutation.mutateAsync({
         ...newTask,
         id: `task-${Date.now()}`,
         projectId: data.currentProjectId
       })
     }
-
-    closeTaskDialog()
+    if (!createTaskMutation.isPending || !updateTaskMutation.isPending) closeTaskDialog()
   }
 
   const openTaskDialog = (task: Partial<Task> | null = null) => {
@@ -121,10 +159,6 @@ export const KanbanBoard: React.FC = () => {
   const closeTaskDialog = () => {
     setShowTaskDialog(false)
     setEditingTask(null)
-  }
-
-  const changeProject = (projectId: string) => {
-    setData({ ...data, currentProjectId: projectId })
   }
 
   const onDragEnd = async (result: DropResult) => {
@@ -159,7 +193,7 @@ export const KanbanBoard: React.FC = () => {
     }))
 
     try {
-      await updateTaskMutation.mutateAsync({
+      await updateTaskMutation.mutate({
         ...movedTask,
         status: destination.droppableId
       })
@@ -173,6 +207,16 @@ export const KanbanBoard: React.FC = () => {
 
   return (
     <div className="p-4">
+      <div className="mb-4 flex items-center">
+        <Button
+          variant="ghost"
+          onClick={() => navigate(`/projects/${workspaceId}`)}
+          className="mr-4"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" /> Back
+        </Button>
+      </div>
+
       <h1 className="text-2xl font-bold mb-4">Kanban Board</h1>
       <div className="mb-4">
         <select
@@ -180,7 +224,7 @@ export const KanbanBoard: React.FC = () => {
           onChange={(e) => changeProject(e.target.value)}
           className="border p-2 mr-2 rounded"
         >
-          {data.projects.map((project) => (
+          {projects.map((project) => (
             <option key={project.id} value={project.id}>
               {project.name}
             </option>
@@ -202,6 +246,7 @@ export const KanbanBoard: React.FC = () => {
                 key={column.id}
                 column={column}
                 assignees={assignees}
+                projectId={data.currentProjectId}
                 onAssign={() => {}}
                 onDelete={() => {}}
                 onUpdate={() => {}}

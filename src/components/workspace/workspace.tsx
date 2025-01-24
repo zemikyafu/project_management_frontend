@@ -168,7 +168,7 @@ const WorkspaceForm: React.FC = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => navigate(`/projectes/${workspace.id}`)}>
+                    <DropdownMenuItem onClick={() => navigate(`/projects/${workspace.id}`)}>
                       View Projects
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setEditingWorkspace(workspace)}>

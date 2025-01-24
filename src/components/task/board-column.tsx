@@ -14,6 +14,7 @@ interface ColumnProps {
 export const Column: React.FC<ColumnProps> = ({
   column,
   assignees,
+  projectId,
   onAssign,
   onDelete,
   onUpdate
@@ -34,6 +35,7 @@ export const Column: React.FC<ColumnProps> = ({
                 task={task}
                 index={index}
                 users={assignees}
+                projectId={projectId}
                 onAssign={onAssign}
                 onDelete={onDelete}
                 onUpdate={onUpdate}

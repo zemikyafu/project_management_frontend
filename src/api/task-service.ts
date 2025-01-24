@@ -24,6 +24,10 @@ const TaskService = {
   async fetchAssignes(projectId: UUID) {
     const response = await api.get(`/projects/${projectId}/tasks/assignees/`)
     return response.data.data
+  },
+  async deleteTask(taskId: UUID, projectId: UUID) {
+    const response = await api.delete(`/projects/${projectId}/tasks/${taskId}`)
+    return response.data
   }
 }
 export default TaskService

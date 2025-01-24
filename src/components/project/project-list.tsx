@@ -36,13 +36,9 @@ const statusColors = {
 }
 interface ProjectListProps {
   workspaceId: string
-  onSelectedWorkspace: (data: { companyId: string; workspaceName: string }) => void
 }
 
-// export const ProjectList: React.FC<ProjectListProps> = ({ workspaceId, onSelectedWorkspace }) => {
-
-export const ProjectList: React.FC = () => {
-  const { workspaceId } = useParams<{ workspaceId: string }>()
+export const ProjectList: React.FC<ProjectListProps> = ({ workspaceId }) => {
   const navigate = useNavigate()
   const {
     projects,
@@ -51,16 +47,6 @@ export const ProjectList: React.FC = () => {
   } = useFetchProjects(workspaceId as UUID)
   const createProjectMutation = useCreateProject(workspaceId as UUID)
   const updateProjectMutation = useUpdateProject(workspaceId as UUID)
-  // const deleteProjectMutation = useDeleteProject(workspaceId!)
-
-  // React.useEffect(() => {
-  //   if (projects?.workspace) {
-  //     onSelectedWorkspace({
-  //       companyId: projects.workspace.companyId,
-  //       workspaceName: projects.workspace.name
-  //     })
-  //   }
-  // }, [projects, onSelectedWorkspace])
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [dialogError, setDialogError] = useState<string | null>(null)
@@ -110,17 +96,6 @@ export const ProjectList: React.FC = () => {
       }
     })
   }
-
-  // const handleDelete = (projectId: string) => {
-  //   deleteProjectMutation.mutate(projectId, {
-  //     onSuccess: () => {
-  //       setDialogError(null);
-  //     },
-  //     onError: (error) => {
-  //       setDialogError(error.message || "Error deleting project.");
-  //     },
-  //   });
-  // };
 
   const openCreateDialog = () => {
     setCreateProjectForm({
@@ -269,7 +244,9 @@ export const ProjectList: React.FC = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => navigate(`/tasks/${project.id}`)}>
+                    <DropdownMenuItem
+                      onClick={() => navigate(`/tasks/${workspaceId}/${project.id}`)}
+                    >
                       View Tasks
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => openEditDialog(project)}>

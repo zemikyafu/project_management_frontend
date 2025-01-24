@@ -7,7 +7,10 @@ const WorkspaceService = {
     const response = await api.get(`/companies/${companyId}/workspaces/`)
     return response.data.data
   },
-
+  async fetchWorkspaceByWorkspaceId(workspaceId: UUID) {
+    const response = await api.get(`/workspaces/${workspaceId}/`)
+    return response.data.data
+  },
   async fetchWorkspaceById(workspaceId: UUID, companyId: UUID) {
     const response = await api.get(`/companies/${companyId}/workspaces/${workspaceId}`)
     return response.data.data

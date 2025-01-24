@@ -1,33 +1,49 @@
 import React, { useState } from "react"
 import { Draggable } from "react-beautiful-dnd"
 import { Task as TaskType, Assignee } from "../../types/index"
+import { useDeleteTask } from "../../features/task-hook"
 
 interface TaskProps {
   task: TaskType
   index: number
   users: Assignee[]
+  projectId: string
   onAssign: (taskId: string, userId: string) => void
-  onDelete: (taskId: string) => void
-  onUpdate: (taskId: string, newContent: string) => void
+  onUpdate: (taskId: string, updatedTask: Partial<TaskType>) => void
 }
 
 export const TaskCard: React.FC<TaskProps> = ({
   task,
   index,
   users,
+  projectId,
   onAssign,
-  onDelete,
   onUpdate
 }) => {
   const [isEditing, setIsEditing] = useState(false)
-  const [editedContent, setEditedContent] = useState(task.content)
+  const [editedTask, setEditedTask] = useState<Partial<TaskType>>({
+    title: task.title,
+    content: task.content,
+    priority: task.priority,
+    status: task.status,
+    assigneeId: task.assignee?.id || "",
+    deadlineAt: task.deadlineAt
+  })
 
-  const handleAssign = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    onAssign(task.id, e.target.value)
+  const deleteTaskMutation = useDeleteTask(projectId)
+
+  const handleDelete = () => {
+    console.log("Deleting task", task.id)
+    console.log("Project ID", projectId)
+    deleteTaskMutation.mutate(task.id)
   }
 
-  const handleUpdate = () => {
-    onUpdate(task.id, editedContent)
+  const handleInputChange = (field: keyof TaskType, value: any) => {
+    setEditedTask((prev) => ({ ...prev, [field]: value }))
+  }
+
+  const handleSave = () => {
+    onUpdate(task.id, editedTask)
     setIsEditing(false)
   }
 
@@ -44,12 +60,55 @@ export const TaskCard: React.FC<TaskProps> = ({
             <div>
               <input
                 type="text"
-                value={editedContent}
-                onChange={(e) => setEditedContent(e.target.value)}
+                value={editedTask.title}
+                onChange={(e) => handleInputChange("title", e.target.value)}
+                placeholder="Title"
+                className="w-full p-1 mb-2 border rounded"
+              />
+              <textarea
+                value={editedTask.content}
+                onChange={(e) => handleInputChange("content", e.target.value)}
+                placeholder="Content"
+                className="w-full p-1 mb-2 border rounded"
+              />
+              <select
+                value={editedTask.priority}
+                onChange={(e) => handleInputChange("priority", e.target.value)}
+                className="w-full p-1 mb-2 border rounded"
+              >
+                <option value="HIGH">High</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="LOW">Low</option>
+              </select>
+              <select
+                value={editedTask.status}
+                onChange={(e) => handleInputChange("status", e.target.value)}
+                className="w-full p-1 mb-2 border rounded"
+              >
+                <option value="BACKLOG">Backlog</option>
+                <option value="IN_PROGRESS">In Progress</option>
+                <option value="DONE">Done</option>
+              </select>
+              <select
+                value={editedTask.assigneeId}
+                onChange={(e) => handleInputChange("assigneeId", e.target.value)}
+                className="w-full p-1 mb-2 border rounded"
+              >
+                <option value="">Unassigned</option>
+                {users.map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.name}
+                  </option>
+                ))}
+              </select>
+              <input
+                type="date"
+                value={editedTask.deadlineAt?.split("T")[0] || ""}
+                onChange={(e) => handleInputChange("deadlineAt", e.target.value)}
                 className="w-full p-1 mb-2 border rounded"
               />
               <button
-                onClick={handleUpdate}
+                onClick={handleSave}
                 className="bg-blue-500 text-white px-2 py-1 rounded mr-2"
               >
                 Save
@@ -63,26 +122,27 @@ export const TaskCard: React.FC<TaskProps> = ({
             </div>
           ) : (
             <div>
+              <h4 className="font-bold mb-2">{task.title}</h4>
               <p className="mb-2">{task.content}</p>
+              <p className="mb-2 text-sm text-gray-600">Priority: {task.priority}</p>
+              <p className="mb-2 text-sm text-gray-600">
+                Assignee: {task.assignee?.name || "Unassigned"}
+              </p>
+              <p className="mb-2 text-sm text-gray-600">
+                Deadline:{" "}
+                {task.deadlineAt ? new Date(task.deadlineAt).toLocaleDateString() : "None"}
+              </p>
               <div className="flex justify-between items-center">
-                <select
-                  value={task.assignee.id || ""}
-                  onChange={handleAssign}
-                  className="p-1 border rounded"
-                >
-                  <option value="">Unassigned</option>
-                  {users.map((user) => (
-                    <option key={user.id} value={user.id}>
-                      {user.name}
-                    </option>
-                  ))}
-                </select>
                 <div>
                   <button onClick={() => setIsEditing(true)} className="text-blue-500 mr-2">
                     Edit
                   </button>
-                  <button onClick={() => onDelete(task.id)} className="text-red-500">
-                    Delete
+                  <button
+                    onClick={handleDelete}
+                    className="text-red-500"
+                    disabled={deleteTaskMutation.isLoading}
+                  >
+                    {deleteTaskMutation.isLoading ? "Deleting..." : "Delete"}
                   </button>
                 </div>
               </div>

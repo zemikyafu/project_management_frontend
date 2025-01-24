@@ -25,6 +25,7 @@ export default function SignupForm() {
     password: ""
   })
   const [errorMessages, setErrorMessages] = useState<Record<string, string>>({})
+  const [errorMessage, setErrorMessage] = useState("")
   const navigate = useNavigate()
   const mutation = useSignup()
 
@@ -43,7 +44,7 @@ export default function SignupForm() {
           navigate("/login")
         },
         onError: (err: Error) => {
-          setErrorMessages({ form: err.message })
+          setErrorMessage(err.message)
         }
       })
     } catch (err) {
@@ -61,6 +62,12 @@ export default function SignupForm() {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
+        {errorMessage && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{errorMessage}</AlertDescription>
+          </Alert>
+        )}
         <CardTitle>Sign Up</CardTitle>
         <CardDescription>Create your account to get started</CardDescription>
       </CardHeader>
