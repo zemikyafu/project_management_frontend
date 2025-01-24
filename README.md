@@ -1,23 +1,52 @@
-# Frontend Project
+# Project Management Platform
 
-The current template tech stack: React, TypeScript, Tailwind, Shadcn, tanstack/react-query.
+A multi-tenant project management platform designed for seamless collaboration and efficient task management. Built with **React**, **TypeScript**, **TailwindCSS**, **Axios**, **TanStack Query** for state management, and **Zod** for schema validation, the platform offers a clean and robust user experience.
 
-## Requirements
+## Features
 
-Create an interface to represent the requirements of your backend project.
+### Multi-Tenant Architecture
+- **Company-Based Structure**: Each company acts as a tenant, hosting its own set of users, workspaces, and data.
+- **Role-Based Access Control**: Custom roles and permissions for users in a company.
 
-Focus on the following principles:
+### Workspace Management
+- **Invite Users**: Send email invitations to users with a specific role to join a workspace.
+- **Onboarding**: Users can accept invitations and onboard via a guided onboarding page.
+- **Manage Workspaces**: Create and manage workspaces under a company.
 
-- Prioritize High-Impact Features
+### Project Management
+- **Create and Manage Projects**: Add new projects and manage existing ones.
+- **Task Management**: Each project includes a list of tasks that can be assigned to users.
 
-  - Identify and implement the most critical functionalities first.
-  - Ensure the interface aligns with the core objectives of the backend project.
+### Task Management
+- **Create and Assign Tasks**: Users can create tasks and assign them to other users.
+- **Email Notifications**: Task assignment triggers an email notification to the assigned user.
+- **Kanban Board**: Organize tasks using a Kanban board with statuses like `To-Do`, `In Progress`, `Review`, and `Complete`.
 
-- Efficient Time Management
+### User Management
+- **User Dashboard**: View and manage all users in the company.
+- **Block/Activate Users**: Admins can block or activate user accounts as needed.
 
-  - Avoid over-investing time in visual styling or non-essential tasks.
-  - Address low-priority issues and bugs only after completing high-priority features.
+### Role Management
+- **Custom Roles**: Admins can create roles and assign specific permissions to each role.
 
-- Clarity and Functionality
-  - Design the interface to be user-friendly and intuitive, but don't sacrifice functionality for aesthetics.
-  - Document any trade-offs made for prioritization.
+---
+
+## Tech Stack
+
+### Frontend
+- **React**: For building a dynamic and interactive user interface.
+- **TypeScript**: Ensures type safety and robustness in the codebase.
+- **TailwindCSS**: Enables quick and responsive UI development.
+- **Axios**: Handles API requests efficiently.
+- **TanStack Query**: Manages server state with powerful caching and synchronization features.
+- **Zod**: Validates and ensures data consistency through schema-based validation.
+
+---
+
+## Getting Started
+
+### Prerequisites
+- [Node.js](https://nodejs.org/)
+- [Yarn](https://yarnpkg.com/)
+- API backend for the application
+
