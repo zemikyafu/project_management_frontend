@@ -1,0 +1,15 @@
+{
+"newUser":{
+    "name": "Natmane3 fisher",
+    "email": "Natman3@gmail.com",
+    "password": "Natman3@123"
+},
+"validUser": {
+    "email": "Natman@gmail.com",
+    "password": "Natman@123"
+},
+"invalidUser": {
+   "email": "Natmanx@gmail.com",
+    "password": "Natmanx@123"
+}
+}
