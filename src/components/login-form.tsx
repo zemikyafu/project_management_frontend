@@ -3,17 +3,10 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useLogin } from "@/features/auth-hook"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle
-} from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, Link } from "react-router-dom"
 
 export default function LoginForm() {
   const navigate = useNavigate()
@@ -36,7 +29,7 @@ export default function LoginForm() {
       },
       onError: (err: Error) => {
         setErrorMessage(err.message)
-      }
+      },
     })
   }
 
@@ -117,12 +110,19 @@ export default function LoginForm() {
             )}
           </div>
         </CardContent>
-        <CardFooter>
+        <CardFooter className="flex flex-col space-y-4">
           <Button type="submit" className="w-full" disabled={mutation.isPending}>
             {mutation.isPending ? "Logging in..." : "Login"}
           </Button>
+          <p className="text-sm text-center">
+            Don't have an account?{" "}
+            <Link to="/signup" className="text-primary hover:underline">
+              Sign up here
+            </Link>
+          </p>
         </CardFooter>
       </form>
     </Card>
   )
 }
+
