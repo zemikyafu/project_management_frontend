@@ -1,11 +1,8 @@
-import { UUID } from "crypto"
-import { StartupSnapshot } from "v8"
-
 export interface Workspace {
   id: string
   name: string
   description: string
-  companyId: String
+  companyId: string
 }
 export interface Role {
   id: string

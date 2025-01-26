@@ -2,8 +2,6 @@ import { KanbanBoard } from "../components/task/kanban-board"
 import { useParams } from "react-router-dom"
 import { useFetchProjects } from "../features/project-hook"
 import { UUID } from "crypto"
-import { Project } from "@/types"
-
 export function TaskManagement() {
   const { workspaceId, projectId } = useParams()
 

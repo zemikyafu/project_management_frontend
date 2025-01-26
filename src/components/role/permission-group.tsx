@@ -1,5 +1,4 @@
 import type { Permission } from "../../types/role"
-import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 
 interface PermissionGroupProps {

@@ -23,7 +23,6 @@ import {
   useFetchProjects,
   useCreateProject,
   useUpdateProject
-  // useDeleteProject
 } from "@/features/project-hook"
 import { Project, ProjectStatus } from "@/types"
 import { UUID } from "crypto"

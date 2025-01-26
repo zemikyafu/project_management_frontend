@@ -13,8 +13,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
-import { Navbar } from "../../components/navbar"
-import { Sidebar } from "../../components/sidebar"
 import { UUID } from "crypto"
 
 interface User {
@@ -44,7 +42,6 @@ export default function ProfilePage() {
 
   const handleSave = async () => {
     try {
-      const response = newProfile.data
       if (!updateError) {
         setIsEditing(false)
       }

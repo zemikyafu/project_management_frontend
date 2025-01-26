@@ -31,7 +31,7 @@ export function useSelectedCompany() {
   }
 
   const getSelectedCompany = () => {
-    return queryClient.getQueryData<String>(selectedCompanyKey())
+    return queryClient.getQueryData<string>(selectedCompanyKey())
   }
 
   return { setSelectedCompany, getSelectedCompany }
