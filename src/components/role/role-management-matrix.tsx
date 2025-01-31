@@ -15,7 +15,7 @@ import {
 import { useParams, useNavigate } from "react-router-dom"
 import { useFetchCompanies } from "@/features/company-hook"
 import type { UUID } from "crypto"
-import type { Company } from "@/types"
+import type { Company, Role } from "@/types"
 import { RoleCreateFormValues } from "@/schemas/role-permission"
 
 export function RoleManagementMatrix() {
@@ -24,7 +24,7 @@ export function RoleManagementMatrix() {
   const navigate = useNavigate()
 
   const { data: companies, isLoading: companiesLoading } = useFetchCompanies()
-  const { roles, isLoading: rolesLoading, error: rolesError } = useFetchRoles(companyId)
+  const { roles, isLoading: rolesLoading, error: rolesError } = useFetchRoles(companyId as UUID)
   const {
     permissions,
     isLoading: permissionsLoading,
@@ -34,7 +34,7 @@ export function RoleManagementMatrix() {
     rolePermissions,
     isLoading: rolePermissionsLoading,
     error: rolePermissionsError
-  } = useFetchRolePermissions(companyId)
+  } = useFetchRolePermissions(companyId as UUID)
 
   const mutateRoles = useCreateRole()
   const mutateDeleteRolePermission = useDeleteRolePermission()
@@ -45,7 +45,7 @@ export function RoleManagementMatrix() {
 
   const allPermissions = useMemo(() => {
     const permissionGroups: { [group: string]: Permission[] } = {}
-    permissions?.forEach((permission) => {
+    permissions?.forEach((permission: Permission) => {
       const group = permission.name.split("-")[0] || "Other"
       if (!permissionGroups[group]) {
         permissionGroups[group] = []
@@ -69,7 +69,7 @@ export function RoleManagementMatrix() {
   const togglePermission = async (roleId: string, permissionId: string) => {
     try {
       const existingRelation = rolePermissions?.find(
-        (rp) => rp.role.id === roleId && rp.permission.id === permissionId
+        (rp: RolePermission) => rp.role.id === roleId && rp.permission.id === permissionId
       )
       if (existingRelation) {
         await mutateDeleteRolePermission.mutateAsync(existingRelation.id)
@@ -90,7 +90,9 @@ export function RoleManagementMatrix() {
     }
 
     const response = await mutateRoles.mutateAsync(newRole)
-    setActiveTab(response.id)
+    if (response) {
+      setActiveTab(response?.id)
+    }
   }
 
   useEffect(() => {
@@ -140,13 +142,13 @@ export function RoleManagementMatrix() {
       </div>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-3 lg:grid-cols-5 h-14 items-stretch">
-          {roles?.map((role) => (
+          {roles?.map((role: Role) => (
             <TabsTrigger key={role.id} value={role.id} className="text-lg">
               {role.name}
             </TabsTrigger>
           ))}
         </TabsList>
-        {roles?.map((role) => (
+        {roles?.map((role: Role) => (
           <TabsContent key={role.id} value={role.id}>
             <Card>
               <CardContent className="p-6">

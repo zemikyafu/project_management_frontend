@@ -39,7 +39,6 @@ export default function LoginForm() {
   }
 
   const validateForm = (): boolean => {
-    console.log("formState validate", formState)
     const newErrors = { email: "", password: "" }
     if (!formState.email) {
       newErrors.email = "Email is required"

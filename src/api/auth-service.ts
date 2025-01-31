@@ -3,9 +3,7 @@ import { UUID } from "crypto"
 
 const Authservice = {
   async login(email: string, password: string) {
-    console.log("email", email)
     const response = await api.post("/auth/signin", { email, password })
-    console.log("response", response)
     return response.data.data
   },
 

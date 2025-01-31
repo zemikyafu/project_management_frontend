@@ -2,6 +2,7 @@ import React, { useState } from "react"
 import { Draggable } from "react-beautiful-dnd"
 import { Task as TaskType, Assignee } from "../../types/index"
 import { useDeleteTask } from "../../features/task-hook"
+import { UUID } from "crypto"
 
 interface TaskProps {
   task: TaskType
@@ -26,16 +27,16 @@ export const TaskCard: React.FC<TaskProps> = ({
     content: task.content,
     priority: task.priority,
     status: task.status,
-    assigneeId: task.assignee?.id || "",
+    assignee: task.assignee,
     deadlineAt: task.deadlineAt
   })
 
-  const deleteTaskMutation = useDeleteTask(projectId)
+  const deleteTaskMutation = useDeleteTask(projectId as UUID)
 
   const handleDelete = () => {
     console.log("Deleting task", task.id)
     console.log("Project ID", projectId)
-    deleteTaskMutation.mutate(task.id)
+    deleteTaskMutation.mutate(task.id as UUID)
   }
 
   const handleInputChange = (field: keyof TaskType, value: any) => {
@@ -90,8 +91,8 @@ export const TaskCard: React.FC<TaskProps> = ({
                 <option value="DONE">Done</option>
               </select>
               <select
-                value={editedTask.assigneeId}
-                onChange={(e) => handleInputChange("assigneeId", e.target.value)}
+                value={editedTask.assignee?.id || ""}
+                onChange={(e) => handleInputChange("assignee", e.target.value)}
                 className="w-full p-1 mb-2 border rounded"
               >
                 <option value="">Unassigned</option>
@@ -140,9 +141,9 @@ export const TaskCard: React.FC<TaskProps> = ({
                   <button
                     onClick={handleDelete}
                     className="text-red-500"
-                    disabled={deleteTaskMutation.isLoading}
+                    disabled={deleteTaskMutation.isPending}
                   >
-                    {deleteTaskMutation.isLoading ? "Deleting..." : "Delete"}
+                    {deleteTaskMutation.isPending ? "Deleting..." : "Delete"}
                   </button>
                 </div>
               </div>

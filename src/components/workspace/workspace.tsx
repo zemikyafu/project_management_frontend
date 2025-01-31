@@ -26,16 +26,12 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { MoreVertical, Plus } from "lucide-react"
 import { UUID } from "crypto"
-
 const WorkspaceForm: React.FC = () => {
-  const [newWorkspace, setNewWorkspace] = useState<Omit<Workspace, "id">>({
+  const [newWorkspace, setNewWorkspace] = useState<Omit<Workspace, "id" | "company">>({
     name: "",
-    description: "",
-    companyId: ""
+    description: ""
   })
   const [editingWorkspace, setEditingWorkspace] = useState<Workspace | null>(null)
-  // const [selectedCompany, setSelectedCompany] = useState<string | null>(null)
-
   const navigate = useNavigate()
   const { companyId } = useParams<{ companyId: UUID }>()
 
@@ -45,7 +41,6 @@ const WorkspaceForm: React.FC = () => {
   const updateWorkspaceMutation = useUpdateWorkspace(companyId as UUID)
 
   const handleCompanySelect = (id: string) => {
-    // setSelectedCompany(id)
     navigate(`/workspaces/${id}`)
   }
 
@@ -54,7 +49,7 @@ const WorkspaceForm: React.FC = () => {
       { ...newWorkspace, companyId: companyId || "" },
       {
         onSuccess: () => {
-          setNewWorkspace({ name: "", description: "", companyId: "" })
+          setNewWorkspace({ name: "", description: "" })
         }
       }
     )

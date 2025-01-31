@@ -1,6 +1,7 @@
 import { useQuery, useMutation, QueryClient, useQueryClient } from "@tanstack/react-query"
 import { UUID } from "crypto"
 import UserService from "../api/user-service"
+import { User } from "@/types"
 
 const QUERY_KEY = "users"
 export function getQueryKey(id?: string) {

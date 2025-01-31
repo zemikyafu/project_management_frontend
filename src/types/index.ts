@@ -2,7 +2,7 @@ export interface Workspace {
   id: string
   name: string
   description: string
-  companyId: string
+  company: Company
 }
 export interface Role {
   id: string
@@ -57,7 +57,8 @@ export interface Task {
   priority: TaskPriority
   status: TaskStatus
   projectId: string
-  assigneeId: string
+  assignee: Assignee
+  // assigneeId: string
   deadlineAt?: string
 }
 export interface Assignee {

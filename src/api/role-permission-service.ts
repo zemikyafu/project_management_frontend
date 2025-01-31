@@ -19,7 +19,7 @@ const RolePermissionService = {
   },
   async createRole(roleData: RoleCreateFormValues) {
     const response = await api.post("/roles", roleData)
-    response.data.data
+    return response.data.data
   },
   async deleteRolePermission(rolePermissionData: RolePermissionFormValues) {
     const response = await api.delete(

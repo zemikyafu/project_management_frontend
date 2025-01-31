@@ -2,7 +2,14 @@ import React, { useState, useEffect } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 import { DragDropContext, DropResult } from "react-beautiful-dnd"
 import { Column } from "./board-column"
-import { KanbanData, Task, Project } from "../../types/index"
+import {
+  KanbanData,
+  Task,
+  Project,
+  TaskPriority,
+  TaskStatus,
+  Column as ColumnType
+} from "../../types/index"
 import {
   useFetchTasks,
   useFetchAssigneesFromWorkspace,
@@ -12,6 +19,8 @@ import {
 import { UUID } from "crypto"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
+import { title } from "process"
+import { UpdateTaskSchema } from "@/schemas/task"
 
 const initialData: KanbanData = {
   columns: {
@@ -40,10 +49,10 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ projects, projectId })
   const [newTask, setNewTask] = useState<Partial<Task>>({
     title: "",
     content: "",
-    priority: "MEDIUM",
-    status: "BACKLOG",
+    priority: TaskPriority.MEDIUM,
+    status: TaskStatus.BACKLOG,
     projectId: projectId || "",
-    assigneeId: "",
+    assignee: { id: "", name: "" },
     deadlineAt: ""
   })
 
@@ -74,26 +83,32 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ projects, projectId })
 
   useEffect(() => {
     if (!tasks.length) {
-      setData((prevData) => ({
+      setData((prevData: KanbanData) => ({
         ...prevData,
-        columns: prevData.columnOrder.reduce((columns, columnId) => {
-          columns[columnId] = {
-            ...prevData.columns[columnId],
-            tasks: []
-          }
-          return columns
-        }, {})
+        columns: prevData.columnOrder.reduce(
+          (columns: { [key: string]: ColumnType }, columnId: string) => {
+            columns[columnId] = {
+              ...prevData.columns[columnId],
+              tasks: []
+            }
+            return columns
+          },
+          {} as { [key: string]: ColumnType }
+        )
       }))
     } else {
-      setData((prevData) => ({
+      setData((prevData: KanbanData) => ({
         ...prevData,
-        columns: prevData.columnOrder.reduce((columns, columnId) => {
-          columns[columnId] = {
-            ...prevData.columns[columnId],
-            tasks: tasks.filter((task) => task.status === columnId)
-          }
-          return columns
-        }, {})
+        columns: prevData.columnOrder.reduce(
+          (columns: { [key: string]: ColumnType }, columnId: string) => {
+            columns[columnId] = {
+              ...prevData.columns[columnId],
+              tasks: tasks.filter((task) => task.status === columnId)
+            }
+            return columns
+          },
+          {} as { [key: string]: ColumnType }
+        )
       }))
     }
   }, [tasks, data.currentProjectId])
@@ -112,16 +127,28 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ projects, projectId })
     if (editingTask) {
       updateTaskMutation.mutate({
         ...editingTask,
-        ...newTask
+        ...newTask,
+        id: editingTask.id as UUID,
+        projectId: data.currentProjectId,
+        priority: newTask.priority || TaskPriority.MEDIUM,
+        status: newTask.status || TaskStatus.BACKLOG,
+        title: newTask.title || "",
+        deadlineAt: newTask.deadlineAt ? new Date(newTask.deadlineAt) : undefined
       })
     } else {
       createTaskMutation.mutateAsync({
         ...newTask,
-        id: `task-${Date.now()}`,
-        projectId: data.currentProjectId
+        projectId: data.currentProjectId,
+        priority: newTask.priority || TaskPriority.MEDIUM,
+        status: newTask.status || TaskStatus.BACKLOG,
+        title: newTask.title || "",
+        deadlineAt: newTask.deadlineAt ? new Date(newTask.deadlineAt) : undefined
       })
     }
-    if (!createTaskMutation.isPending || !updateTaskMutation.isPending) closeTaskDialog()
+
+    if (!createTaskMutation.isPending && !updateTaskMutation.isPending) {
+      closeTaskDialog()
+    }
   }
 
   const openTaskDialog = (task: Partial<Task> | null = null) => {
@@ -130,10 +157,10 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ projects, projectId })
       task || {
         title: "",
         content: "",
-        priority: "MEDIUM",
-        status: "BACKLOG",
+        priority: TaskPriority.MEDIUM,
+        status: TaskStatus.BACKLOG,
         projectId: data.currentProjectId || "",
-        assigneeId: "",
+        assignee: { id: "", name: "" },
         deadlineAt: ""
       }
     )
@@ -158,13 +185,13 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ projects, projectId })
     const destinationColumn = data.columns[destination.droppableId]
     if (!sourceColumn || !destinationColumn) return
 
-    const movedTask = sourceColumn.tasks[source.index]
+    const movedTask = sourceColumn.tasks ? sourceColumn.tasks[source.index] : null
     if (!movedTask) return
 
-    const updatedSourceTasks = [...sourceColumn.tasks]
+    const updatedSourceTasks = sourceColumn.tasks ? [...sourceColumn.tasks] : []
     updatedSourceTasks.splice(source.index, 1)
 
-    const updatedDestinationTasks = [...destinationColumn.tasks]
+    const updatedDestinationTasks = destinationColumn.tasks ? [...destinationColumn.tasks] : []
     updatedDestinationTasks.splice(destination.index, 0, movedTask)
 
     setData((prevData) => ({
@@ -176,11 +203,25 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ projects, projectId })
       }
     }))
 
+    // try {
+    //   await updateTaskMutation.mutate({
+    //     ...movedTask,
+    //     status: destination.droppableId
+    //   })
+    // } catch (error) {
+    //   console.error("Error updating task status:", error)
+    // }
+
     try {
-      await updateTaskMutation.mutate({
+      const updatedTask = {
         ...movedTask,
         status: destination.droppableId
-      })
+      }
+      const validatedTask = UpdateTaskSchema.safeParse(updatedTask)
+      if (!validatedTask.success) {
+        return
+      }
+      await updateTaskMutation.mutateAsync(validatedTask.data)
     } catch (error) {
       console.error("Error updating task status:", error)
     }
@@ -230,7 +271,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ projects, projectId })
                 key={column.id}
                 column={column}
                 assignees={assignees}
-                projectId={data.currentProjectId}
+                projectId={data.currentProjectId as UUID}
                 onAssign={() => {}}
                 onDelete={() => {}}
                 onUpdate={() => {}}
@@ -256,9 +297,15 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ projects, projectId })
               onChange={(e) => setNewTask((prev) => ({ ...prev, content: e.target.value }))}
               className="w-full p-2 border rounded mb-2"
             />
+
             <select
-              value={newTask.priority || "MEDIUM"}
-              onChange={(e) => setNewTask((prev) => ({ ...prev, priority: e.target.value }))}
+              value={newTask.priority || TaskPriority.MEDIUM}
+              onChange={(e) =>
+                setNewTask((prev) => ({
+                  ...prev,
+                  priority: e.target.value as TaskPriority // Cast to TaskPriority
+                }))
+              }
               className="w-full p-2 border rounded mb-2"
             >
               <option value="CRITICAL">Critical</option>
@@ -274,7 +321,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({ projects, projectId })
               className="w-full p-2 border rounded mb-2"
             />
             <select
-              value={newTask.assigneeId || ""}
+              value={newTask.assignee?.id || ""}
               onChange={(e) => setNewTask((prev) => ({ ...prev, assigneeId: e.target.value }))}
               className="w-full p-2 border rounded mb-2"
             >

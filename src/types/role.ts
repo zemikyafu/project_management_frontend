@@ -1,16 +1,16 @@
 import { UUID } from "crypto"
 
 export interface Role {
-  id:UUID
+  id: UUID
   name: string
   permissions: Set<Permission>
 }
-export type Permission= {
+export type Permission = {
   id: UUID
   name: string
 }
 
 export interface RolePermission {
-  roleId: UUID
-  permissionId: UUID
+  role: Role
+  permission: Permission
 }

@@ -1,14 +1,15 @@
 import React from "react"
 import { Droppable } from "react-beautiful-dnd"
 import { TaskCard } from "./task-card"
-import { Column as ColumnType, Assignee } from "../../types/index"
-
+import { Column as ColumnType, Assignee, Task } from "../../types/index"
+import { UUID } from "crypto"
 interface ColumnProps {
   column: ColumnType
   assignees: Assignee[]
+  projectId: UUID
   onAssign: (taskId: string, userId: string) => void
   onDelete: (taskId: string) => void
-  onUpdate: (taskId: string, newContent: string) => void
+  onUpdate: (taskId: string, updatedTask: Partial<Task>) => void
 }
 
 export const Column: React.FC<ColumnProps> = ({
@@ -37,7 +38,6 @@ export const Column: React.FC<ColumnProps> = ({
                 users={assignees}
                 projectId={projectId}
                 onAssign={onAssign}
-                onDelete={onDelete}
                 onUpdate={onUpdate}
               />
             ))}

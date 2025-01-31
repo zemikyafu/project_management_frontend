@@ -10,15 +10,15 @@ export function UserManagement() {
   const navigate = useNavigate()
 
   const { data: companies, isLoading: companiesLoading } = useFetchCompanies()
-  const { users = [], error, isLoading } = useFetchUser(companyId as UUID)
+  const { users, error, isLoading } = useFetchUser(companyId as UUID)
   const updateStatusMutation = useUpdateUserStatus()
 
   const handleCompanySelect = (id: string) => {
     navigate(`/userManagement/${id}`)
   }
-  const toggleUserStatus = async (userId: UUID, currentStatus: string) => {
+  const toggleUserStatus = async (userId: string, currentStatus: string) => {
     const newStatus = currentStatus === "ACTIVE" ? "BLOCKED" : "ACTIVE"
-    await updateStatusMutation.mutateAsync({ userId, status: newStatus })
+    await updateStatusMutation.mutateAsync({ userId: userId as UUID, status: newStatus })
   }
 
   if (!companyId) {
@@ -58,7 +58,12 @@ export function UserManagement() {
       <main className="flex-1 p-6 overflow-auto">
         <div className="container mx-auto p-4 space-y-4">
           <h1 className="text-2xl font-bold">User Management</h1>
-          {users && <UserTable users={users} onToggleStatus={toggleUserStatus} />}
+          {users && (
+            <UserTable
+              users={Array.isArray(users) ? users : []}
+              onToggleStatus={toggleUserStatus}
+            />
+          )}
         </div>
       </main>
     </div>

@@ -1,11 +1,11 @@
-import axios from "axios";
-import setupInterceptors from "./interceptors";
+import axios from "axios"
+import setupInterceptors from "./interceptors"
 
-const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:10000/api/v1';
+const baseURL = import.meta.env.VITE_API_BACKEND_BASE_URL || "http://localhost:1000/api/v1"
 const api = axios.create({
-    baseURL
-  });
+  baseURL
+})
 
-  setupInterceptors(api);
-  
-  export default api;
+setupInterceptors(api)
+
+export default api
