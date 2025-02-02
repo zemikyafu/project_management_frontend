@@ -6,13 +6,13 @@ import { Briefcase, Layers, CheckSquare } from "lucide-react"
 export function AppDescription() {
   const items = [
     { icon: Briefcase, text: "Manage Workspaces" },
-    { icon: Layers, text: "Organize Projects" },
+    { icon: Layers, text: "Manage Projects" },
     { icon: CheckSquare, text: "Track Tasks" }
   ]
 
   return (
     <div className="flex flex-col items-center justify-center h-full min-h-[500px] bg-gradient-to-br from-blue-100 to-blue-200 p-8 rounded-lg">
-      <h2 className="text-2xl font-bold mb-6 text-blue-800">Project Management Made Easy</h2>
+      <h2 className="text-2xl font-bold mb-6 text-blue-800">Project Management App</h2>
       <div className="flex flex-col space-y-4 w-full max-w-sm">
         {items.map((item, index) => (
           <motion.div
